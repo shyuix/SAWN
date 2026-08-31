@@ -24,7 +24,7 @@ stress the risk model from both ends.
 | **Platform** | https://sawn-demo1.netlify.app/ |
 | **RAG simulator** | https://rag-simulator-sawn1.netlify.app/ |
 | **Wireframes (Figma)** | [Sawn · Wireframes](https://www.figma.com/design/sUfzQYwlMIfq97aNy0BXbu/Sawn%C2%B7-Wireframes?node-id=0-1&t=1VIIBII4ecNhfgrk-1) |
-| **Demo video** | *link to follow* |
+| **Demo video** | [Sawn — 7 minute demo](https://youtu.be/0P5f7jlFg7A) (English subtitles; also in [`docs/demo-subtitles.srt`](docs/demo-subtitles.srt)) |
 | **Technical report** | [`docs/Sawn_Report.docx`](docs/Sawn_Report.docx) |
 
 Both pages are single HTML files. Nothing is installed, no key is needed, and nothing
@@ -93,7 +93,8 @@ serve both.
   floor 1.1 and coverage 0.40, the same coverage floor as the simulator.
 
 Under the first rule every seeded fault type grounds in an instrument. Under the second,
-all seven regression questions — one per policy gap in section 5 of the report — refuse,
+all seven regression questions — one per policy gap in the mapped documents section of
+the report — refuse,
 and the internal deadline check refuses too, which is what writes *no instrument sets a
 maximum repair time* to the register for every open request. Those questions are asked at
 load, so the register is populated by running the code, not by hand.
@@ -101,8 +102,8 @@ load, so the register is populated by running the code, not by hand.
 ## Results
 
 The evaluation set holds 41 questions: 22 that a specific instrument answers, 7 that none
-does, and 12 paraphrases. The 7 are not arbitrary — there is one for each policy gap in
-section 5 of the report, so the two documents cannot drift apart. If a question here
+does, and 12 paraphrases. The 7 are not arbitrary — there is one for each policy gap
+recorded in the report, so the two documents cannot drift apart. If a question here
 starts being answered, the gap it probes has been closed by a new instrument and the
 report needs updating.
 
@@ -182,7 +183,7 @@ eval/questions.yaml           22 answerable, 7 uncovered, 12 paraphrased
 cli.py                        ask · eval
 tools/verify_index.py         the integrity check described above
 docs/                         technical report, knowledge base, demo
-                              framework, demo script, subtitles, screenshots
+                              framework, subtitles, screenshots
 ```
 
 The index is fitted offline — sentence-window chunking with one sentence of overlap,
@@ -202,7 +203,7 @@ asserted.
 ## What this is not
 
 **The corpus holds restatements, not statute.** Each entry is a short description of an
-instrument written for retrieval, with its authority and a link to the official text.
+instrument written for retrieval, with its authority and a link to the issuing body.
 Nothing in `kb/sources.json` is a legal source and the file says so. Pointing the index at
 the full published documents is the obvious next step; the chunker already handles longer
 text.
@@ -235,4 +236,4 @@ Shahad Helal Alghamdi (information technology) · Reem Helal Alghamdi (nursing).
 ## License
 
 MIT — see [LICENSE](LICENSE). The instruments cited remain the property of their issuing
-authorities; the links in `kb/sources.json` point to the official text.
+authorities; the links in `kb/sources.json` point to where they publish it.
