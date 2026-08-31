@@ -1,0 +1,97 @@
+# Sawn retrieval evaluation set
+# 22 questions a specific instrument answers, 7 that none does (one per policy gap in section 5 of the report),
+# and 12 paraphrases of answerable questions asked the way a principal would ask them.
+# ids refer to kb/sources.json. The metrics in the README are computed over this file by app/rag-simulator.html.
+
+defaults:
+  alpha: 0.45          # dense weight in the blended score
+  score_floor: 0.28
+  coverage_floor: 0.4
+
+answerable:
+  - q: "Who must inspect a blocked fire exit in a school?"
+    expect: [SBC801, CIVDEF]
+  - q: "What governs a crack in a load bearing wall?"
+    expect: [SBC201]
+  - q: "An electrical distribution board is exposed at child height. What applies?"
+    expect: [SBC401]
+  - q: "What rules cover fire alarm systems and extinguishers?"
+    expect: [SBC801, CIVDEF]
+  - q: "Maintenance photographs capture pupils. What protects their data?"
+    expect: [PDPL]
+  - q: "How must school vulnerability data be classified before sharing?"
+    expect: [NDMO]
+  - q: "What legal weight does an electronic signature on a handover carry?"
+    expect: [ETRANS, NCDC]
+  - q: "Which certificates authenticate the identity behind an electronic signature?"
+    expect: [NCDC, ETRANS]
+  - q: "What governs contracting a maintenance company and its liability?"
+    expect: [GTPL, TBC]
+  - q: "Who executes school building maintenance for the ministry?"
+    expect: [TBC]
+  - q: "What cybersecurity controls apply to a government platform?"
+    expect: [ECC]
+  - q: "Where may government data be hosted in the cloud?"
+    expect: [CCC]
+  - q: "What identity assurance is required for government digital services?"
+    expect: [DGA]
+  - q: "Which principles require fairness and human oversight of AI?"
+    expect: [AIETH]
+  - q: "How should risk be evaluated by likelihood and consequence?"
+    expect: [ISO31000]
+  - q: "What standard covers managing an AI system across its lifecycle?"
+    expect: [ISO42001]
+  - q: "What guidance covers AI risk and model failure?"
+    expect: [ISO23894]
+  - q: "What defines the machine learning pipeline nodes?"
+    expect: [Y3172]
+  - q: "How is the intelligence level of an automated system evaluated?"
+    expect: [Y3173]
+  - q: "What framework covers a sandbox for validating a model before deployment?"
+    expect: [Y3181]
+  - q: "What framework covers data handling across the pipeline?"
+    expect: [Y3174]
+  - q: "What information security controls apply to logging and access?"
+    expect: [ISO27001]
+
+uncovered:
+  - q: "What is the maximum number of days allowed to repair a critical school fault?"
+    expect: []
+  - q: "Which body must approve a change to the risk matrix weights?"
+    expect: []
+  - q: "How often must fairness across regions be published for a public AI system?"
+    expect: []
+  - q: "How must a national map of the structurally weakest schools be classified?"
+    expect: []
+  - q: "What stops a cloud provider reusing school risk data commercially?"
+    expect: []
+  - q: "Where must a maintenance photograph of pupils be de-identified?"
+    expect: []
+  - q: "Who is liable when an official overrides the ranking and the school is damaged?"
+    expect: []
+
+paraphrase:
+  - q: "Who checks a fire escape that has been chained shut?"
+    expect: [SBC801, CIVDEF]
+  - q: "A wall holding up the roof has split. Which code applies?"
+    expect: [SBC201]
+  - q: "Is a digitally signed completion note legally binding here?"
+    expect: [ETRANS, NCDC]
+  - q: "Where is government information allowed to live?"
+    expect: [CCC]
+  - q: "What must happen before a model goes live?"
+    expect: [Y3181]
+  - q: "A pupil appears in a repair photo. What protects them?"
+    expect: [PDPL]
+  - q: "Someone left a live panel open near the little kids."
+    expect: [SBC401]
+  - q: "Which company fixes ministry school buildings?"
+    expect: [TBC]
+  - q: "How do we buy work from an outside firm lawfully?"
+    expect: [GTPL]
+  - q: "What stops one region being served worse than another?"
+    expect: [AIETH]
+  - q: "How do we grade a danger by how likely and how bad?"
+    expect: [ISO31000]
+  - q: "What keeps our logins and logs safe?"
+    expect: [ECC, ISO27001]

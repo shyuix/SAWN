@@ -1,0 +1,251 @@
+1
+00:00:00,000 --> 00:00:12,000
+This is everything Sawn is: two files, no
+server, no installation, no API key.
+
+2
+00:00:12,000 --> 00:00:25,000
+The platform, and the retrieval simulator
+with our evaluation set.
+
+3
+00:00:25,000 --> 00:00:40,000
+Scenario one, the problem. I sign in as
+the Al Baha education department.
+
+4
+00:00:40,000 --> 00:00:46,000
+Sorted by the date on the form, watch the
+last row:
+
+5
+00:00:46,000 --> 00:00:52,000
+a chained emergency exit should sit at the
+bottom.
+
+6
+00:00:52,000 --> 00:00:59,740
+There it is. Position fourteen of
+fourteen,
+
+7
+00:00:59,740 --> 00:01:10,000
+thirteen older requests ahead. First come,
+first served.
+
+8
+00:01:10,000 --> 00:01:25,000
+Scenario two, the rule. Eight published
+weights that sum to one hundred.
+
+9
+00:01:25,000 --> 00:01:33,666
+Fifty-two per cent on physical safety, and
+the rule:
+
+10
+00:01:33,666 --> 00:01:45,000
+structural or electrical at eight is
+Critical, whatever the number.
+
+11
+00:01:45,000 --> 00:01:51,272
+Scenario three, the same queue under the
+rule.
+
+12
+00:01:51,272 --> 00:02:00,000
+I click By risk; the chained exit should
+jump to the top three.
+
+13
+00:02:00,000 --> 00:02:15,000
+Position three, up eleven places,
+Critical, twenty-four hour clock running.
+
+14
+00:02:15,000 --> 00:02:19,160
+The eight indicators, the score,
+
+15
+00:02:19,160 --> 00:02:28,000
+and one generated explanation sentence. No
+rank leaves without one.
+
+16
+00:02:35,000 --> 00:02:42,582
+Scenario four, where the authority comes
+from.
+
+17
+00:02:42,582 --> 00:02:50,000
+This fault retrieved the fire code, SBC
+801.
+
+18
+00:02:50,000 --> 00:03:02,653
+I ask the knowledge base who must inspect
+a blocked fire exit;
+
+19
+00:03:02,653 --> 00:03:10,000
+the answer should carry its source.
+
+20
+00:03:10,000 --> 00:03:15,892
+SBC 801, with authority and link.
+
+21
+00:03:15,892 --> 00:03:25,000
+The system did not write a rule; it
+retrieved one.
+
+22
+00:03:25,000 --> 00:03:32,325
+Scenario five, the part most systems hide.
+
+23
+00:03:32,325 --> 00:03:40,000
+A question no published instrument
+answers.
+
+24
+00:03:40,000 --> 00:03:44,827
+The correct behaviour is a refusal,
+
+25
+00:03:44,827 --> 00:03:52,000
+and the question should drop into the gap
+register.
+
+26
+00:03:52,000 --> 00:03:58,381
+Seven regression questions, one per gap in
+our report,
+
+27
+00:03:58,381 --> 00:04:05,000
+already here. Gaps are an output of
+running the system.
+
+28
+00:04:05,000 --> 00:04:20,000
+Scenario six, accountability. I open a
+handled request as the school principal.
+
+29
+00:04:20,000 --> 00:04:24,455
+The company, its registration,
+
+30
+00:04:24,455 --> 00:04:35,000
+the supervising engineer and his council
+number, the dates in and out.
+
+31
+00:04:35,000 --> 00:04:38,700
+Handover notes,
+and two signature fingerprints
+
+32
+00:04:38,700 --> 00:04:42,475
+computed over the declaration.
+
+33
+00:04:42,475 --> 00:04:45,000
+A later edit breaks them.
+
+34
+00:04:45,000 --> 00:04:48,473
+Scenario seven, proof.
+
+35
+00:04:48,473 --> 00:05:00,000
+The simulator runs the question stage by
+stage against the fitted index.
+
+36
+00:05:00,000 --> 00:05:05,769
+Ninety-five per cent first-hit accuracy,
+
+37
+00:05:05,769 --> 00:05:15,000
+seven of seven uncovered questions
+refused, one honest failure.
+
+38
+00:05:15,000 --> 00:05:23,613
+I lower the coverage floor to 0.20 and
+miscitations climb.
+
+39
+00:05:23,613 --> 00:05:30,000
+The threshold is an argument you can drag.
+
+40
+00:05:30,000 --> 00:05:36,084
+Scenario eight, changing the policy
+safely.
+
+41
+00:05:36,084 --> 00:05:45,000
+I raise People affected from ten to
+twenty-two in the sandbox.
+
+42
+00:05:45,000 --> 00:05:51,272
+The counterfactual: which requests would
+move,
+
+43
+00:05:51,272 --> 00:06:00,000
+and the small-versus-large school gap
+opening from zero to two.
+
+44
+00:06:00,000 --> 00:06:02,232
+Nothing has been applied.
+
+45
+00:06:02,232 --> 00:06:07,741
+A weight change ships only as a versioned
+committee decision.
+
+46
+00:06:07,741 --> 00:06:10,000
+That is Y.3181, working.
+
+47
+00:06:10,000 --> 00:06:18,052
+The impact: 24,075 schools on one
+comparable scale;
+
+48
+00:06:18,052 --> 00:06:25,000
+a chained fire exit waits hours, not
+weeks.
+
+49
+00:06:25,000 --> 00:06:30,737
+Every rank carries its regulation; nothing
+closes without a signature.
+
+50
+00:06:30,737 --> 00:06:35,000
+The AI decides the order, a human signs
+the action.
+
+51
+00:06:35,000 --> 00:06:43,611
+Built on ITU-T Y.3172 and Y.3181 and 23
+published instruments;
+
+52
+00:06:43,611 --> 00:06:50,000
+seven gaps offered back to policy and to
+ITU.
+
+53
+00:06:50,000 --> 00:06:55,000
+Sawn. Which school cannot wait.
+

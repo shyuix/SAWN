@@ -1,0 +1,435 @@
+{
+  "note": "Retrieval corpus for Sawn: 23 published instruments, each as a short restatement written for retrieval with its issuing authority and a link to the official text. These are not legal sources; cite the official document at the url. This file is the corpus rag/index.json was fitted over; tools/verify_index.py asserts the two agree.",
+  "count": 23,
+  "sources": [
+    {
+      "id": "SBC201",
+      "code": "SBC 201",
+      "title": "General Building Code (structural provisions)",
+      "authority": "Saudi Building Code National Committee",
+      "url": "https://sbc.gov.sa",
+      "text": "SBC 201 — General Building Code (structural provisions). Sets the structural design and safety requirements for buildings in the Kingdom, including load bearing elements. Damage to a load bearing element is a structural condition and is assessed against this code rather than treated as a cosmetic defect.",
+      "tags": [
+        "cracking",
+        "load bearing",
+        "debris",
+        "subsidence",
+        "paving",
+        "falling",
+        "sections",
+        "ceilings",
+        "suspended",
+        "shedding",
+        "fissure",
+        "structural",
+        "crack",
+        "wall",
+        "beam",
+        "column",
+        "collapse",
+        "ceiling",
+        "roof"
+      ]
+    },
+    {
+      "id": "SBC401",
+      "code": "SBC 401",
+      "title": "Electrical requirements",
+      "authority": "Saudi Building Code National Committee",
+      "url": "https://sbc.gov.sa",
+      "text": "SBC 401 — Electrical requirements. Covers electrical installations, protection and safe enclosure of distribution equipment. An exposed or unsecured panel in an occupied area is a defect under this code.",
+      "tags": [
+        "distribution board",
+        "short circuit",
+        "burning",
+        "outage",
+        "lighting",
+        "wiring",
+        "installations",
+        "electrical",
+        "panel",
+        "exposed",
+        "shock",
+        "socket"
+      ]
+    },
+    {
+      "id": "SBC801",
+      "code": "SBC 801",
+      "title": "Fire protection requirements",
+      "authority": "Saudi Building Code National Committee",
+      "url": "https://sbc.gov.sa",
+      "text": "SBC 801 — Fire protection requirements. Governs means of egress, fire separation and protection systems. Exits must stay usable at all times, so a blocked or locked exit is a life safety failure and not a scheduling matter.",
+      "tags": [
+        "alarm",
+        "extinguishers",
+        "inspection",
+        "exits",
+        "emergency",
+        "evacuation",
+        "smoke",
+        "fire",
+        "exit",
+        "egress",
+        "door",
+        "blocked"
+      ]
+    },
+    {
+      "id": "CIVDEF",
+      "code": "Civil Defence",
+      "title": "Fire safety requirements for occupied premises",
+      "authority": "General Directorate of Civil Defence",
+      "url": "https://998.gov.sa",
+      "text": "Civil Defence — Fire safety requirements for occupied premises. Sets safety requirements and inspection powers for occupied premises including schools, covering evacuation routes, extinguishers and alarm systems.",
+      "tags": [
+        "extinguishers",
+        "alarm",
+        "emergency exits",
+        "periodic inspection",
+        "requirements",
+        "evacuation",
+        "fire",
+        "safety",
+        "inspection",
+        "school",
+        "occupancy"
+      ]
+    },
+    {
+      "id": "MOE-FAC",
+      "code": "MoE specs",
+      "title": "School facility specifications and operating procedures",
+      "authority": "Ministry of Education",
+      "url": "https://moe.gov.sa",
+      "text": "MoE specs — School facility specifications and operating procedures. Defines how school facilities are specified, operated and reported on, and how a principal raises a maintenance request through the ministry chain.",
+      "tags": [
+        "drainage",
+        "sanitation",
+        "Toilets",
+        "odours",
+        "damp",
+        "doors",
+        "windows",
+        "air conditioning",
+        "ventilation",
+        "lighting",
+        "yard",
+        "paving",
+        "periodic",
+        "operation",
+        "school",
+        "facility",
+        "maintenance",
+        "request",
+        "procedure",
+        "principal",
+        "leak",
+        "water",
+        "roof",
+        "damage",
+        "repair"
+      ]
+    },
+    {
+      "id": "TBC",
+      "code": "TBC mandate",
+      "title": "Executing arm for education buildings",
+      "authority": "Tatweer Buildings Company",
+      "url": "https://www.tbc.sa",
+      "text": "TBC mandate — Executing arm for education buildings. Government company owned by the Public Investment Fund that operates as the executing arm for Ministry of Education building projects, covering construction, operation and maintenance of school buildings through a control centre linked to principals and contractors.",
+      "tags": [
+        "contractor",
+        "work order",
+        "facility management",
+        "execution",
+        "school building",
+        "maintenance"
+      ]
+    },
+    {
+      "id": "PDPL",
+      "code": "PDPL",
+      "title": "Personal Data Protection Law",
+      "authority": "SDAIA",
+      "url": "https://sdaia.gov.sa",
+      "text": "PDPL — Personal Data Protection Law. Governs the processing of personal data in the Kingdom, including lawful basis, purpose limitation and data minimisation. Photographs taken inside a school may capture students, which brings maintenance imagery into scope.",
+      "tags": [
+        "personal data",
+        "privacy",
+        "consent",
+        "purpose",
+        "minor",
+        "child",
+        "image",
+        "photo"
+      ]
+    },
+    {
+      "id": "NDMO",
+      "code": "NDMO",
+      "title": "National data governance and classification",
+      "authority": "SDAIA / National Data Management Office",
+      "url": "https://sdaia.gov.sa",
+      "text": "NDMO — National data governance and classification. Sets national rules for data governance, classification and sharing between entities. Classification decides how a dataset may be shared, stored and exposed to third parties.",
+      "tags": [
+        "classification",
+        "sensitive",
+        "sharing",
+        "governance",
+        "residency",
+        "sensor",
+        "availability"
+      ]
+    },
+    {
+      "id": "AIETH",
+      "code": "AI Ethics",
+      "title": "AI ethics principles",
+      "authority": "SDAIA",
+      "url": "https://sdaia.gov.sa",
+      "text": "AI Ethics — AI ethics principles. National principles for artificial intelligence covering fairness, transparency, accountability, reliability, privacy and human oversight. They are principles rather than enforceable controls, so they guide design without prescribing an appeal mechanism.",
+      "tags": [
+        "fairness",
+        "transparency",
+        "accountability",
+        "human oversight",
+        "explainability",
+        "bias"
+      ]
+    },
+    {
+      "id": "ECC",
+      "code": "ECC-2:2024",
+      "title": "Essential Cybersecurity Controls",
+      "authority": "National Cybersecurity Authority",
+      "url": "https://nca.gov.sa",
+      "text": "ECC-2:2024 — Essential Cybersecurity Controls. The national cybersecurity baseline for government entities and critical infrastructure, covering governance, defence, resilience and third party and cloud security. Access control, logging and supplier obligations sit here.",
+      "tags": [
+        "access control",
+        "audit",
+        "log",
+        "identity",
+        "asset",
+        "third party",
+        "credential",
+        "access rights"
+      ]
+    },
+    {
+      "id": "CCC",
+      "code": "CCC-1:2020",
+      "title": "Cloud cybersecurity controls",
+      "authority": "National Cybersecurity Authority",
+      "url": "https://nca.gov.sa",
+      "text": "CCC-1:2020 — Cloud cybersecurity controls. Controls for cloud service providers and government tenants, including hosting location and separation duties for hosted government data.",
+      "tags": [
+        "cloud",
+        "hosting",
+        "residency",
+        "provider",
+        "tenant",
+        "data residency"
+      ]
+    },
+    {
+      "id": "DGA",
+      "code": "DGA",
+      "title": "Digital government standards; Nafath identity (NIC)",
+      "authority": "Digital Government Authority",
+      "url": "https://dga.gov.sa",
+      "text": "DGA — Digital government standards; Nafath identity (NIC). Standards for government digital services covering interoperability, integration and access. Nafath, the national single sign on operated by the National Information Center under SDAIA (iam.gov.sa), is the identity layer those standards rely on.",
+      "tags": [
+        "authentication",
+        "identity",
+        "interoperability",
+        "api",
+        "integration",
+        "accessibility",
+        "National ID",
+        "API",
+        "access"
+      ]
+    },
+    {
+      "id": "ETRANS",
+      "code": "Electronic Transactions Law",
+      "title": "Electronic Transactions Law",
+      "authority": "Royal Decree M/18 (2007); administered by MCIT",
+      "url": "https://www.mcit.gov.sa",
+      "text": "Electronic Transactions Law — Electronic Transactions Law. Gives electronic transactions and electronic signatures legal effect in the Kingdom, and sets when an electronic record and signature carry the same weight as a written one.",
+      "tags": [
+        "signature",
+        "electronic",
+        "legal weight",
+        "declaration",
+        "transaction",
+        "log",
+        "documentation",
+        "evidence"
+      ]
+    },
+    {
+      "id": "NCDC",
+      "code": "Digital certification",
+      "title": "National digital certification",
+      "authority": "National Center for Digital Certification (MCIT)",
+      "url": "https://www.mcit.gov.sa",
+      "text": "Digital certification — National digital certification. Operates the national framework for digital certificates that authenticate the identity behind an electronic signature.",
+      "tags": [
+        "certificate",
+        "digital",
+        "certification",
+        "signature",
+        "identity",
+        "trusted"
+      ]
+    },
+    {
+      "id": "GTPL",
+      "code": "GTPL / Etimad",
+      "title": "Government tenders and procurement",
+      "authority": "Ministry of Finance",
+      "url": "https://etimad.sa",
+      "text": "GTPL / Etimad — Government tenders and procurement. Governs how government entities contract suppliers and how contractual obligations and penalties are applied to them.",
+      "tags": [
+        "procurement",
+        "contract",
+        "vendor",
+        "supplier",
+        "tender",
+        "sanction",
+        "tenders",
+        "contractor",
+        "penalty"
+      ]
+    },
+    {
+      "id": "ISO31000",
+      "code": "ISO 31000",
+      "title": "Risk management guidelines",
+      "authority": "ISO",
+      "url": "https://iso.org",
+      "text": "ISO 31000 — Risk management guidelines. Guidelines for managing risk, including establishing criteria, evaluating risk by likelihood and consequence, and deciding treatment and escalation.",
+      "tags": [
+        "risk",
+        "likelihood",
+        "consequence",
+        "treatment",
+        "escalation",
+        "criteria",
+        "impact"
+      ]
+    },
+    {
+      "id": "ISO27001",
+      "code": "ISO/IEC 27001",
+      "title": "Information security management",
+      "authority": "ISO/IEC",
+      "url": "https://iso.org",
+      "text": "ISO/IEC 27001 — Information security management. Requirements for an information security management system, including controls for logging, access and supplier relationships.",
+      "tags": [
+        "information security",
+        "control",
+        "logging",
+        "confidentiality",
+        "records"
+      ]
+    },
+    {
+      "id": "ISO42001",
+      "code": "ISO/IEC 42001",
+      "title": "AI management system",
+      "authority": "ISO/IEC",
+      "url": "https://iso.org",
+      "text": "ISO/IEC 42001 — AI management system. Requirements for managing artificial intelligence systems across their lifecycle, including impact assessment, documentation and controlled change.",
+      "tags": [
+        "ai management",
+        "lifecycle",
+        "model",
+        "impact assessment",
+        "documentation",
+        "AI management"
+      ]
+    },
+    {
+      "id": "ISO23894",
+      "code": "ISO/IEC 23894",
+      "title": "AI risk management guidance",
+      "authority": "ISO/IEC",
+      "url": "https://iso.org",
+      "text": "ISO/IEC 23894 — AI risk management guidance. Guidance on applying risk management to artificial intelligence, covering model failure, monitoring and unwanted outcomes.",
+      "tags": [
+        "ai risk",
+        "model failure",
+        "monitoring",
+        "bias",
+        "AI risk"
+      ]
+    },
+    {
+      "id": "Y3172",
+      "code": "ITU-T Y.3172",
+      "title": "Architectural framework for machine learning",
+      "authority": "ITU-T Study Group 13",
+      "url": "https://www.itu.int/rec/T-REC-Y.3172",
+      "text": "ITU-T Y.3172 — Architectural framework for machine learning. Defines the machine learning pipeline as a chain of nodes: source, collector, preprocessor, model, policy, distributor and sink, together with the orchestrator that manages them.",
+      "tags": [
+        "pipeline",
+        "src",
+        "collector",
+        "preprocessor",
+        "model",
+        "policy",
+        "distributor",
+        "sink",
+        "orchestrator",
+        "node"
+      ]
+    },
+    {
+      "id": "Y3173",
+      "code": "ITU-T Y.3173",
+      "title": "Evaluating intelligence levels",
+      "authority": "ITU-T Study Group 13",
+      "url": "https://www.itu.int/rec/T-REC-Y.3173",
+      "text": "ITU-T Y.3173 — Evaluating intelligence levels. A framework for evaluating how much of a task is automated and how much still requires human involvement.",
+      "tags": [
+        "intelligence level",
+        "automation",
+        "evaluation",
+        "autonomy"
+      ]
+    },
+    {
+      "id": "Y3174",
+      "code": "ITU-T Y.3174",
+      "title": "Data handling framework",
+      "authority": "ITU-T Study Group 13",
+      "url": "https://www.itu.int/rec/T-REC-Y.3174",
+      "text": "ITU-T Y.3174 — Data handling framework. A framework for handling data across the machine learning pipeline, including the reference points where data moves between nodes.",
+      "tags": [
+        "data handling",
+        "reference point",
+        "collection",
+        "preprocessing"
+      ]
+    },
+    {
+      "id": "Y3181",
+      "code": "ITU-T Y.3181",
+      "title": "Machine learning sandbox",
+      "authority": "ITU-T Study Group 13",
+      "url": "https://www.itu.int/rec/T-REC-Y.3181",
+      "text": "ITU-T Y.3181 — Machine learning sandbox. An architectural framework for a sandbox where a machine learning pipeline is trained and validated in simulation before it is applied to the live system.",
+      "tags": [
+        "sandbox",
+        "simulation",
+        "validation",
+        "before deployment",
+        "counterfactual",
+        "Verify"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sawn — national triage platform for school maintenance</title>
+<!-- build EN-v6 · 27 Aug 2026 · grounding rules split, level-first queue order, date/risk toggle, Y.3181 sandbox panel, regression gap set, string fixes -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --petrol:#0E3B43;--petrol-900:#07252B;--petrol-800:#0A2F36;--petrol-700:#12525C;
+  --emerald:#178C6C;--amber:#E0A33C;--danger:#C0392B;
+  --paper:#EDF1F0;--card:#FFF;--ink:#0B2126;--mute:#5D7479;--line:#D6E0DE;
+  --ar:'Inter',system-ui,sans-serif;--display:'Bricolage Grotesque','Inter',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+h1,h2,h3,h4,#wordmark .w,.lpanel .lg b,.brand b{font-family:var(--display);letter-spacing:-.01em}
+body{font-family:var(--ar);background:var(--petrol-900);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font-family:var(--ar);cursor:pointer;border:0}
+.mono{font-family:var(--mono);direction:ltr;display:inline-block;font-feature-settings:"tnum"}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#B9C8C6;border-radius:9px}
+
+/* ================= INTRO ================= */
+#intro{position:fixed;inset:0;z-index:200;background:var(--petrol-900);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .8s}
+#intro.gone{opacity:0;pointer-events:none}
+.stage{position:relative;width:min(92vw,560px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.bellwrap{position:relative;width:138px;height:138px;display:flex;align-items:center;justify-content:center;flex:none;transition:opacity .6s}
+#bell{width:112px;height:112px;transition:transform .9s cubic-bezier(.4,0,.2,1)}
+#bell path,#bell circle{stroke:#fff;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#bell .fillme{transition:fill .7s .2s}
+.draw{stroke-dasharray:300;stroke-dashoffset:300;animation:draw 1.7s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+#clap{opacity:0;transition:opacity .4s}
+#rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.ring{position:absolute;border:1px solid rgba(224,163,60,.5);border-radius:50%;width:108px;height:108px;opacity:0}
+.ring.go{animation:rip 2.8s ease-out forwards}
+@keyframes rip{0%{opacity:.85;transform:scale(.45)}100%{opacity:0;transform:scale(5.4)}}
+.mapwrap{position:relative;width:100%;max-width:470px;opacity:0;transition:opacity .9s}
+.mapwrap.on{opacity:1}
+#dots{width:100%;height:auto;display:block}
+.d{fill:#24505A;transition:fill .5s,opacity .6s,r .4s}
+.d.lit{fill:#7FA9A8}
+.d.dim{opacity:.13}
+.d.crit{fill:#C0392B;opacity:1}
+#counter{text-align:center;opacity:0;transition:opacity .6s}
+#counter.on{opacity:1}
+#cnum{font-family:var(--mono);font-size:clamp(32px,6.4vw,56px);font-weight:600;color:#fff;letter-spacing:-1px;line-height:1;direction:ltr;unicode-bidi:isolate}
+#clbl{font-size:13px;color:#83A6A6;margin-top:7px}
+#callout{position:absolute;background:#fff;color:var(--petrol);padding:7px 13px;border-radius:9px;font-size:12.5px;font-weight:600;
+  opacity:0;transition:opacity .45s;pointer-events:none;box-shadow:0 10px 26px rgba(0,0,0,.45);white-space:nowrap;
+  transform:translate(-50%,-152%);inset-inline-start:auto}
+#callout.on{opacity:1}
+#callout::after{content:"";position:absolute;bottom:-5px;left:50%;margin-left:-5px;width:10px;height:10px;background:#fff;transform:rotate(45deg)}
+#wordmark{text-align:center;opacity:0;transform:translateY(14px);transition:.9s;display:none}
+#wordmark.on{opacity:1;transform:none}
+#wordmark .w{font-size:clamp(44px,9vw,76px);font-weight:700;color:#fff;letter-spacing:2px;line-height:1}
+#wordmark .lat{font-family:var(--display);font-size:13px;letter-spacing:3.5px;text-transform:uppercase;color:var(--amber);font-weight:600;margin-top:8px;direction:ltr}
+#wordmark .tag{font-size:15px;color:#A9C6C6;font-weight:300;margin-top:14px}
+#skip{position:fixed;bottom:22px;inset-inline-start:22px;background:transparent;border:1px solid rgba(255,255,255,.28);color:#A9C6C6;padding:8px 16px;border-radius:99px;font-size:12.5px;z-index:210;transition:.2s}
+#skip:hover{border-color:#fff;color:#fff}
+
+/* ================= LOGIN ================= */
+#login{position:fixed;inset:0;z-index:150;display:none;background:var(--petrol-900);overflow:auto}
+#login.on{display:grid;grid-template-columns:1fr 1fr}
+.lpanel{background:linear-gradient(165deg,var(--petrol) 0%,var(--petrol-900) 100%);color:#fff;padding:46px 44px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.lpanel::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:18px 18px}
+.lpanel>*{position:relative;z-index:2}
+.lpanel .lg{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.lpanel .lg svg{width:44px;height:44px}
+.lpanel .lg b{font-size:26px;display:block;line-height:1}
+.lpanel .lg span{font-size:11px;letter-spacing:.4px;color:var(--amber);font-family:var(--display);direction:ltr}
+.lpanel h2{font-size:clamp(24px,3vw,34px);font-weight:700;line-height:1.35}
+.lpanel h2 em{font-style:normal;color:var(--amber)}
+.lpanel p{color:#B4CFCE;font-size:14.5px;font-weight:300;margin-top:14px;max-width:420px}
+.lstats{display:flex;gap:26px;margin-top:36px;flex-wrap:wrap}
+.lstats div b{font-family:var(--mono);font-size:23px;color:#fff;display:block;letter-spacing:-1px;direction:ltr;unicode-bidi:isolate}
+.lstats div span{font-size:11.5px;color:#8FB0B0}
+.lform{background:var(--paper);padding:44px;display:flex;flex-direction:column;justify-content:center}
+.lform .box{width:100%;max-width:400px;margin:0 auto}
+.lform h3{font-size:20px;color:var(--petrol);margin-bottom:4px}
+.lform .s{font-size:13px;color:var(--mute);margin-bottom:22px}
+.roles{display:grid;gap:8px;margin-bottom:18px}
+.role{display:flex;gap:11px;align-items:center;padding:13px;border:1.5px solid var(--line);border-radius:10px;background:#fff;text-align:start;transition:.16s;width:100%}
+.role:hover{border-color:var(--petrol-700)}
+.role.on{border-color:var(--petrol);background:#F1F7F6}
+.role b{font-size:13.5px;display:block}.role em{font-style:normal;font-size:11.5px;color:var(--mute)}
+.role .rd{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);flex:none}
+.role.on .rd{border-color:var(--petrol);background:var(--petrol);box-shadow:inset 0 0 0 3px #fff}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-size:12.5px;font-weight:500;margin-bottom:5px;color:#2C4448}
+.fld input,.fld select,.fld textarea{width:100%;font-family:var(--ar);font-size:14px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none;color:var(--ink)}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--petrol);box-shadow:0 0 0 3px rgba(14,59,67,.12)}
+.btn{background:var(--petrol);color:#fff;padding:12px 18px;border-radius:9px;font-size:14px;font-weight:600;width:100%;transition:.16s}
+.btn:hover{background:var(--petrol-700)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--petrol)}
+.btn.amber{background:var(--amber);color:#3A2A06}
+.btn.sm{width:auto;padding:8px 15px;font-size:12.5px}
+.seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;gap:4px;margin-bottom:14px}
+.seg button{flex:1;font-size:12.5px;font-weight:600;background:transparent;color:var(--mute);padding:9px 8px;border-radius:7px;transition:.18s}
+.seg button.on{background:var(--petrol);color:#fff}
+.note{font-size:11.5px;color:var(--mute);background:#F2F7F6;border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.nafnums{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.nafnum{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:19px 0;font-family:var(--mono);font-size:27px;font-weight:600;color:var(--petrol);transition:.16s}
+.nafnum:hover{border-color:var(--petrol)}
+.nafnum.ok{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+.nafnum.no{opacity:.3}
+
+/* ================= APP ================= */
+#app{display:none;background:var(--paper);min-height:100vh}
+#app.on{display:block}
+.top{background:var(--petrol);color:#fff;position:sticky;top:0;z-index:80;border-bottom:1px solid rgba(255,255,255,.1)}
+.topin{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 22px}
+.tbrand{display:flex;align-items:center;gap:11px}
+.tbrand svg{width:32px;height:32px}
+.tbrand b{font-size:18px;line-height:1.1;display:block}
+.tbrand span{font-size:10px;color:#A9C6C6;letter-spacing:.4px}
+.tright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.live{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);padding:5px 12px;border-radius:99px;font-size:11.5px;color:#CFE0DF}
+.pulse{width:7px;height:7px;border-radius:50%;background:#3BD08A;animation:pl 1.6s infinite}
+@keyframes pl{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(59,208,138,.55)}70%{opacity:.7;box-shadow:0 0 0 7px rgba(59,208,138,0)}}
+.clock{font-family:var(--mono);font-size:12.5px;color:#CFE0DF}
+.who{font-size:12.5px;text-align:start;line-height:1.3}
+.who b{display:block;font-size:13px}
+.who span{font-size:10.5px;color:#A9C6C6}
+.out{background:rgba(255,255,255,.1);color:#fff;padding:6px 13px;border-radius:8px;font-size:12px}
+.out:hover{background:rgba(255,255,255,.2)}
+.clause{border:1px solid var(--line,#dfe7e9);border-radius:4px;margin-bottom:6px;background:#fff}
+.clause summary{cursor:pointer;padding:8px 10px;font-size:12.5px;display:flex;gap:8px;align-items:center;list-style:none}
+.clause summary::-webkit-details-marker{display:none}
+.ccode{font-family:ui-monospace,monospace;font-size:10.5px;color:#fff;background:var(--petrol);padding:2px 6px;border-radius:3px;white-space:nowrap}
+.cttl{flex:1;min-width:0;font-weight:600}
+.crel{font-family:ui-monospace,monospace;font-size:10.5px;color:var(--mute)}
+.cdet{padding:9px 10px;font-size:12.5px;line-height:1.7;border-top:1px solid var(--line,#dfe7e9);color:#2b3a40}
+.cauth{display:block;font-size:11px;color:var(--mute);margin-top:6px}
+.gapbox{border:1px solid #D08A2A;background:#FDF7EC;border-radius:4px;padding:10px 12px;font-size:12.5px;margin-top:8px}
+.gapbox b{color:#8A6508}
+.fbanner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#EAF2F3;border-inline-start:3px solid var(--petrol);
+  padding:9px 13px;border-radius:4px;margin-bottom:12px;font-size:13px}
+.fbanner button{margin-inline-start:auto;background:#fff;border:1px solid var(--line,#dfe7e9);border-radius:4px;
+  padding:4px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--petrol)}
+.fbanner button:hover{border-color:var(--petrol)}
+.vswitch{display:flex;gap:0;margin:0 0 12px;border:1px solid var(--line,#dfe7e9);border-radius:5px;overflow:hidden;width:max-content}
+.vswitch button{background:#fff;border:0;padding:6px 14px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--mute)}
+.vswitch button.on{background:var(--petrol);color:#fff}
+.statbar{display:flex;gap:0;flex-wrap:wrap;align-items:stretch;border:1px solid var(--line);
+  border-radius:6px;background:var(--card);overflow:hidden;margin-bottom:14px}
+.statbar:empty{display:none}
+.sb{flex:1 1 150px;min-width:120px;background:none;border:0;border-inline-end:1px solid var(--line);
+  padding:12px 16px;cursor:pointer;text-align:start;font:inherit;transition:.14s;
+  display:flex;flex-direction:column;gap:1px}
+.sb:last-child{border-inline-end:0}
+.sb:hover{background:#F2F7F7}
+.sb[aria-pressed="true"]{background:#EEF4F5;box-shadow:inset 0 -3px 0 var(--amber)}
+.sbn{font-family:var(--mono);font-size:21px;font-weight:700;line-height:1.1}
+.sbl{font-size:12.5px;font-weight:600;color:var(--ink)}
+.sbx{font-size:11px;color:var(--mute)}
+.tabrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.navback{margin-inline-start:22px;width:30px;height:30px;border-radius:5px;border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.06);color:#fff;font-size:17px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:.14s;flex:0 0 auto}
+.navback:hover:not(:disabled){background:rgba(255,255,255,.16)}
+.navback:disabled{opacity:.32;cursor:default}
+.navback:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.tabrow .tabs{flex:0 1 auto}
+.hstats{display:none;gap:2px;flex-wrap:wrap;align-items:center;margin-inline-start:auto;padding-inline-end:22px}
+.hstats.on{display:flex}
+@media(max-width:900px){.hstats{margin-inline-start:0;padding:0 22px 8px}}
+.hs{display:flex;align-items:baseline;gap:6px;background:transparent;border:0;
+  border-bottom:2.5px solid transparent;padding:10px 12px;cursor:pointer;transition:.16s;white-space:nowrap;font:inherit}
+.hs:hover .hsl,.hs:hover .hsn{color:#fff}
+.hs[aria-pressed="true"]{border-bottom-color:var(--amber)}
+.hs[aria-pressed="true"] .hsl{color:#fff;font-weight:600}
+.hsn{font-family:var(--mono);font-size:14px;font-weight:700;line-height:1}
+.hsl{font-size:13px;color:#A9C6C6;transition:.16s}
+.hsx{display:none}
+.recs{border:1px solid var(--line,#dfe7e9);border-radius:6px;background:#fff;margin-bottom:12px;overflow:hidden}
+.rechd{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--line,#dfe7e9);cursor:pointer}
+.rechd:hover{background:#F5F9F9}
+.recttl{flex:1;min-width:0;font-size:14px;font-weight:700;line-height:1.45}
+.recid{font-size:11px;color:var(--mute)}
+.sec{padding:11px 14px;border-bottom:1px solid var(--line,#dfe7e9)}
+.sec:last-child{border-bottom:0}
+.sech{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--mute);margin-bottom:7px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 22px}
+.kvi{display:flex;flex-direction:column;gap:1px;font-size:12.5px;line-height:1.5;border-bottom:1px dotted #E7EDEE;padding-bottom:5px}
+.kvk{color:var(--mute);font-size:11px}
+.kvv{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.ind{display:flex;align-items:center;gap:7px;font-size:12px;margin-bottom:3px}
+.ind .nm{flex:0 0 108px;color:var(--mute)}
+.ind .br{flex:1;height:6px;background:#EDF2F3;border-radius:3px;overflow:hidden}
+.ind .br i{display:block;height:100%;background:var(--petrol)}
+.ind .vl{font-family:var(--mono);font-size:11px;width:58px;text-align:end}
+.vendor{border:1px solid var(--line,#dfe7e9);border-inline-start:4px solid var(--petrol);border-radius:4px;padding:11px 13px;background:#F7FAFA}
+.vname{font-size:16px;font-weight:700;color:var(--petrol);line-height:1.3}
+.vhead{font-size:13px;font-weight:600;margin-top:3px}
+.vmeta{font-size:11.5px;color:var(--mute);margin-top:4px}
+.sigbox{border:1px solid #B7D8CE;background:#F2FAF7;border-radius:4px;padding:11px 13px;margin-top:10px}
+.sigttl{font-size:11.5px;font-weight:700;color:#0F766E;letter-spacing:.04em;margin-bottom:8px}
+.sigrow{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.7;margin-bottom:7px}
+.sigok{width:18px;height:18px;border-radius:50%;background:#0F766E;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:3px}
+.signote{font-size:11px;color:var(--mute);border-top:1px dashed #B7D8CE;padding-top:7px;margin-top:4px}
+.rate{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.rep.click{cursor:pointer;transition:.15s}
+.rep.click:hover{border-color:var(--petrol);box-shadow:0 2px 10px rgba(18,65,79,.09)}
+.rep .more{font-size:11.5px;color:var(--petrol);margin-top:8px;display:flex;align-items:center;gap:5px}
+.rep.click:hover .more{text-decoration:underline}
+.rate .btn{padding:7px 18px}
+.tabs{display:flex;gap:2px;padding:0 22px;overflow-x:auto}
+.tabs button{background:transparent;color:#A9C6C6;padding:10px 15px;font-size:13px;border-bottom:2.5px solid transparent;white-space:nowrap;transition:.16s}
+.tabs button:hover{color:#fff}
+.tabs button.on{color:#fff;border-bottom-color:var(--amber);font-weight:600}
+
+.wrap{max-width:1260px;margin:0 auto;padding:24px 22px 70px}
+.view{display:none;animation:fade .3s}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.vhead{margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.vhead h1{font-size:22px;color:var(--petrol);font-weight:700}
+.vhead p{font-size:13px;color:var(--mute);max-width:640px;margin-top:2px}
+
+.kpirow{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;border-top:3px solid var(--petrol)}
+.kpi b{font-family:var(--mono);font-size:24px;font-weight:600;display:block;letter-spacing:-1px;direction:ltr;unicode-bidi:isolate}
+.kpi span{font-size:11.5px;color:var(--mute);display:block;line-height:1.4}
+.kpi i{font-style:normal;font-size:10px;color:#93A8AB;display:block;margin-top:2px}
+.kpi.crit{border-top-color:var(--danger)}.kpi.crit b{color:var(--danger)}
+.kpi.ok{border-top-color:var(--emerald)}.kpi.ok b{color:var(--emerald)}
+.kpi.ai{border-top-color:var(--amber)}.kpi.ai b{color:#9A6B14}
+
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.panel h4{font-size:15px;color:var(--petrol);margin-bottom:3px}
+.panel .sub{font-size:12px;color:var(--mute);margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;align-items:start}
+@media(max-width:960px){.grid2{grid-template-columns:1fr}#login.on{grid-template-columns:1fr}.lpanel{display:none}}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--petrol);color:#fff;font-weight:500;font-size:11.5px;padding:9px;text-align:start}
+th:first-child{border-start-start-radius:8px}th:last-child{border-start-end-radius:8px}
+td{padding:10px 9px;border-bottom:1px solid var(--line);background:#fff;vertical-align:middle}
+tr.click{cursor:pointer;transition:.15s}tr.click:hover td{background:#F2F7F6}
+tr.fresh td{animation:flash 2.6s}
+@keyframes flash{0%{background:#FBF1DF}100%{background:#fff}}
+.rk{font-family:var(--mono);font-weight:600;font-size:15px;color:var(--petrol);position:relative}
+.rk .dl{font-size:9px;font-weight:600;position:absolute;top:-6px;inset-inline-start:-4px}
+.up{color:var(--danger)}.down{color:var(--mute)}
+.sc{font-family:var(--mono);font-weight:600;font-size:15px;direction:ltr;unicode-bidi:isolate}
+.chip{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px;display:inline-block;white-space:nowrap}
+.c-crit{background:#FBEAE8;color:var(--danger)}.c-high{background:#FBF1DF;color:#9A6B14}
+.c-med{background:#E4F2ED;color:var(--emerald)}.c-low{background:#EDF1F0;color:var(--mute)}
+.c-info{background:#E7EFF1;color:var(--petrol)}.c-ai{background:#F3ECFB;color:#5B3E8E}
+.sla{font-family:var(--mono);font-size:12px;font-weight:600;unicode-bidi:plaintext}
+.sla.warn{color:var(--amber)}.sla.late{color:var(--danger)}.sla.okk{color:var(--emerald)}
+
+.aibox{border:1px solid #CBB9E8;background:#F8F4FE;border-radius:10px;padding:14px;margin-top:10px}
+.aibox .h{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:#5B3E8E;letter-spacing:.3px;margin-bottom:8px}
+.aibox .h .sp{width:13px;height:13px;border:2px solid #CBB9E8;border-top-color:#5B3E8E;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.aibox.load .h .sp{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.aibox p{font-size:13px;color:#3A2E4E}
+.aibox .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.mini{font-size:10.5px;color:#7A6A96;font-family:var(--mono);margin-top:8px;direction:ltr;text-align:left}
+
+.crow{display:grid;grid-template-columns:1fr 92px 40px;gap:10px;align-items:center;font-size:12px;margin-bottom:7px}
+.cb{height:6px;background:var(--paper);border-radius:99px;overflow:hidden}
+.cb i{display:block;height:100%;background:var(--petrol-700);transition:width .4s}
+.cv{font-family:var(--mono);font-size:11px;color:var(--mute);text-align:left}
+.ind{margin-bottom:11px}
+.ind label{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;gap:8px}
+.ind label span:last-child{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.wt{font-size:10px;color:var(--mute);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:1px 5px;margin-inline-start:6px}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:var(--line);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--petrol);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--petrol);border:2px solid #fff;cursor:pointer}
+
+.crumb{display:flex;align-items:center;gap:6px;margin-bottom:14px;font-size:13px;flex-wrap:wrap}
+.backbtn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;
+  border-radius:4px;padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--petrol);
+  text-decoration:none;margin-inline-end:8px;cursor:pointer}
+.backbtn:hover{border-color:var(--petrol);background:#F2F7F7}
+.mback{position:absolute;inset-inline-start:18px;top:16px;border:1px solid var(--line);background:#fff;
+  border-radius:4px;padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--petrol);cursor:pointer}
+.mback:hover{border-color:var(--petrol);background:#F2F7F7}
+.crumb button{background:transparent;color:var(--petrol-700);font-size:13px;font-weight:600;padding:4px 2px;text-decoration:underline;text-underline-offset:3px}
+.crumb button:hover{color:var(--petrol)}
+.crumb i{font-style:normal;color:var(--mute)}
+.crumb span{color:var(--ink);font-weight:600}
+.hc.act{cursor:pointer}
+.hc.act:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(7,37,43,.18)}
+.hc.idle{background:#fff!important}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:7px}
+.hc{border-radius:8px;padding:10px 11px;color:#fff;transition:.15s}
+.hc.me{outline:2.5px solid var(--amber);outline-offset:2px}
+.hc b{font-size:12px;display:block;font-weight:600}
+.hc span{font-family:var(--mono);font-size:11px;opacity:.9}
+
+.rep{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px;background:#fff;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.rep .t{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.rep b{font-size:13.5px}
+.rep .body{font-size:12.5px;color:#31474B;margin-top:7px}
+.rep .ai{font-size:12.5px;color:#4A3A6B;background:#F8F4FE;border:1px solid #E3D8F5;border-radius:8px;padding:9px 11px;margin-top:9px}
+.rep .ai b{color:#5B3E8E;font-size:11.5px;display:block;margin-bottom:3px}
+.urg{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--petrol);direction:ltr;unicode-bidi:isolate}
+
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.fchip{background:#fff;border:1px solid var(--line);color:var(--mute);font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;transition:.16s;display:flex;align-items:center;gap:6px}
+.fchip:hover{border-color:var(--petrol-700);color:var(--petrol)}
+.fchip.on{background:var(--petrol);border-color:var(--petrol);color:#fff}
+.fchip .fn{font-family:var(--mono);font-size:10.5px;opacity:.75;direction:ltr}
+.ent{background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px 14px;margin-bottom:7px;border-inline-start:3px solid var(--mute)}
+.ent.fresh{animation:flash 2.6s}
+.e-dec{border-inline-start-color:var(--amber)}.e-ai{border-inline-start-color:#7B5AAE}
+.e-req{border-inline-start-color:var(--petrol-700)}.e-rep{border-inline-start-color:var(--emerald)}
+.e-auth{border-inline-start-color:#8FA5A8}.e-gov{border-inline-start-color:#B08968}
+.etop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.ename{font-size:13.5px;font-weight:600;color:var(--ink)}
+.ecode{font-family:var(--mono);font-size:9.5px;color:#8FA5A8;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:1px 6px;letter-spacing:.3px}
+.etime{margin-inline-start:auto;font-size:11.5px;color:var(--mute);font-family:var(--mono);direction:ltr;unicode-bidi:isolate}
+.emeta{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:#31474B;margin-top:5px}
+.emeta b{color:var(--mute);font-weight:500;font-size:11.5px}
+.emeta .ref{font-family:var(--mono);font-size:11.5px;direction:ltr;unicode-bidi:isolate;display:inline-block}
+.ehash{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:7px;padding-top:7px;border-top:1px dashed var(--line);font-size:10.5px;color:#93A8AB;font-family:var(--mono);direction:ltr}
+.ehash span[dir=ltr]{unicode-bidi:isolate}
+.ehash .qn{font-family:var(--ar);color:var(--petrol);font-weight:600;font-size:11px}
+.ehash .lnk{font-family:var(--ar);font-size:10.5px}
+.aud{background:var(--petrol-900);color:#CFE0DF;border-radius:10px;padding:15px;font-family:var(--mono);font-size:11px;direction:ltr;text-align:left;max-height:420px;overflow:auto}
+.aud div{padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.13);display:flex;gap:10px;flex-wrap:wrap}
+.aud .a{color:#fff}.aud .h{color:var(--amber)}
+.aud .new{background:rgba(224,163,60,.13);border-radius:4px}
+
+.chat{max-height:340px;overflow:auto;padding:4px}
+.msg{margin-bottom:11px;font-size:13px}
+.msg.u{text-align:start}
+.msg .b{display:inline-block;padding:10px 13px;border-radius:11px;max-width:88%}
+.msg.u .b{background:var(--petrol);color:#fff}
+.msg.a .b{background:#F1F5F4;border:1px solid var(--line);color:#20393D;white-space:pre-wrap}
+
+.modal{position:fixed;inset:0;background:rgba(7,37,43,.62);z-index:120;display:none;align-items:center;justify-content:center;padding:18px}
+.modal.on{display:flex;animation:fade .25s}
+.mbox{background:var(--paper);border-radius:14px;max-width:940px;width:100%;max-height:90vh;overflow:auto;padding:22px}
+.mbox .x{float:left;background:transparent;color:var(--mute);font-size:20px;line-height:1}
+.toast{position:fixed;bottom:22px;inset-inline-start:22px;background:var(--petrol);color:#fff;padding:12px 19px;border-radius:10px;font-size:13px;box-shadow:0 10px 30px rgba(7,37,43,.35);opacity:0;transform:translateY(12px);transition:.28s;z-index:190;pointer-events:none}
+.toast.on{opacity:1;transform:none}
+.databar{background:#F6E9CE;color:#5B4310;font-size:11.5px;padding:7px 22px;text-align:center}
+.pipe{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 22px;background:#0B3138;border-bottom:1px solid #12414F}
+.pipe .pl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7FB2B2;letter-spacing:.08em;margin-inline-end:4px}
+.pipe span[data-n]{display:flex;flex-direction:column;align-items:flex-start;padding:3px 9px;border-radius:4px;border:1px solid #1E4E58;color:#7FA6AA;min-width:0;position:relative}
+.pipe span[data-n]+span[data-n]::before{content:"›";position:absolute;left:-7px;top:6px;color:#3F6E76;font-size:12px}
+.pipe span[data-n] b{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em}
+.pipe span[data-n] i{font-style:normal;font-size:9.5px;opacity:.75;white-space:nowrap}
+.pipe span[data-n].on{background:#E0A33C;border-color:#E0A33C;color:#0B3138}
+.pipe span[data-n].on i{opacity:.9}
+@media(max-width:900px){.pipe span[data-n] i{display:none}}
+.databar b{color:#3F2E06}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ================= INTRO ================= -->
+<div id="intro">
+  <div class="stage" id="stage">
+    <div class="bellwrap" id="bellwrap">
+      <div id="rings"><span class="ring"></span><span class="ring"></span><span class="ring"></span></div>
+      <svg id="bell" viewBox="0 0 64 64" aria-label="Sawn">
+        <circle class="draw fillme" cx="32" cy="7.5" r="3.4"/>
+        <path class="draw fillme" d="M32 11c-9.5 0-15.5 7.6-15.5 19 0 9.6-3.8 13.6-6.1 17.4h43.2C51.3 43.6 47.5 39.6 47.5 30 47.5 18.6 41.5 11 32 11Z"/>
+        <path class="draw" id="door" d="M27 47.4V36.6a5 5 0 0 1 10 0v10.8Z"/>
+        <path id="clap" d="M32 49.5 35.4 53 32 56.5 28.6 53Z" fill="#E0A33C" stroke="none"/>
+        <path class="draw" d="M7 60c8-4 42-4 50 0"/>
+      </svg>
+    </div>
+    <div class="mapwrap" id="mapwrap">
+      <svg id="dots" viewBox="0 0 520 380" aria-hidden="true"></svg>
+      <div id="callout">Al Baha · this one cannot wait</div>
+    </div>
+    <div id="counter"><div id="cnum">0</div><div id="clbl">maintenance requests awaiting triage across the Kingdom</div></div>
+    <div id="wordmark">
+      <div class="w">Sawn</div><div class="lat">National triage platform</div>
+      <div class="tag">Which school cannot wait?</div>
+    </div>
+  </div>
+</div>
+<button id="skip">Skip intro</button>
+
+<!-- ================= LOGIN ================= -->
+<div id="login">
+  <div class="lpanel">
+    <div class="lg">
+      <svg viewBox="0 0 64 64"><circle cx="32" cy="7.5" r="3.4" fill="#fff"/>
+        <path fill="#fff" fill-rule="evenodd" d="M32 11c-9.5 0-15.5 7.6-15.5 19 0 9.6-3.8 13.6-6.1 17.4h43.2C51.3 43.6 47.5 39.6 47.5 30 47.5 18.6 41.5 11 32 11Zm-5 36.4V36.6a5 5 0 0 1 10 0v10.8Z"/>
+        <path d="M32 49.5 35.4 53 32 56.5 28.6 53Z" fill="#E0A33C"/>
+        <path d="M7 60c8-4 42-4 50 0" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".85"/></svg>
+      <div><b>Sawn</b><span>Which school cannot wait?</span></div>
+    </div>
+    <h2>A risk-based decision —<br><em>not first come, first served.</em></h2>
+    <p>A national platform that reads every maintenance request with AI, measures its risk on a transparent matrix, and ranks schools with the most dangerous first. Reference deployment: the Al Baha regional education department.</p>
+    <div class="lstats">
+      <div><b>991</b><span>schools in Al Baha</span></div>
+      <div><b>85,000+</b><span>pupils</span></div>
+      <div><b>~24,000</b><span>schools nationally</span></div>
+    </div>
+  </div>
+  <div class="lform">
+    <div class="box">
+      <div id="lstep1">
+        <h3>Sign in</h3>
+        <div class="s">Identity proves who you are; authority comes from the ministry record, not from the person</div>
+        <div class="roles" id="roles">
+          <button class="role on" data-r="school"><span class="rd"></span><span><b>School principal</b><em>Balhakam Primary — Al Mandaq</em></span></button>
+          <button class="role" data-r="admin"><span class="rd"></span><span><b>Education department</b><em>Al Baha regional education department</em></span></button>
+          <button class="role" data-r="ministry"><span class="rd"></span><span><b>Ministry of Education</b><em>National decision centre</em></span></button>
+        </div>
+        <div class="seg" id="authseg">
+          <button data-a="moe" class="on">Ministry single sign-on</button>
+          <button data-a="nafath">National ID</button>
+        </div>
+        <div id="moeFields">
+          <div class="fld"><label>Ministry account</label><input id="moeUser" value="a.alghamdi@moe.gov.sa" dir="ltr"></div>
+          <div class="fld"><label>Password</label><input id="pw" type="password" value="Sawn@1446"></div>
+          
+          <div class="note">Authority, job title and posting are read from the ministry HR record. They are not granted by hand inside Sawn.</div>
+        </div>
+        <div id="nafFields" style="display:none">
+          <div class="fld"><label>National ID number</label><input id="nid" value="1078451236" inputmode="numeric" dir="ltr"></div>
+          <div class="note">National ID sign-in for anyone without a ministry account: maintenance contractors and field teams. The person signs in with their own identity rather than a shared account, so every handover is recorded against a named person and their professional membership number.</div>
+        </div>
+        <button class="btn" style="margin-top:14px" onclick="toStep2()" id="goBtn">Continue</button>
+        <p style="font-size:11px;color:var(--mute);margin-top:12px;text-align:center">Every session is written to the audit trail</p>
+      </div>
+      <div id="lstep2" style="display:none">
+        <h3 id="v2title">Two-factor check</h3>
+        <div class="s" id="v2sub"></div>
+        <div id="otpWrap" style="display:none">
+          <div class="fld"><label>Code from the ministry app</label><input id="otp" value="483920" inputmode="numeric" dir="ltr" style="text-align:center;font-family:var(--mono);font-size:22px;letter-spacing:6px"></div>
+          <button class="btn" onclick="verifyOtp()">Confirm code</button>
+        </div>
+        <div class="nafnums" id="nafnums"></div>
+        <div id="nafok" style="display:none">
+          <p style="font-size:13.5px;color:var(--emerald);font-weight:600;text-align:center">Verified</p>
+          <p style="font-size:12px;color:var(--mute);text-align:center;margin-bottom:14px" id="nafwho"></p>
+          <button class="btn" onclick="enterApp()">Sign in</button>
+        </div>
+        <button class="btn ghost" style="margin-top:10px" onclick="backLogin()">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <div class="top">
+    <div class="topin">
+      <div class="tbrand">
+        <svg viewBox="0 0 64 64"><circle cx="32" cy="7.5" r="3.4" fill="#fff"/>
+          <path fill="#fff" fill-rule="evenodd" d="M32 11c-9.5 0-15.5 7.6-15.5 19 0 9.6-3.8 13.6-6.1 17.4h43.2C51.3 43.6 47.5 39.6 47.5 30 47.5 18.6 41.5 11 32 11Zm-5 36.4V36.6a5 5 0 0 1 10 0v10.8Z"/>
+          <path d="M32 49.5 35.4 53 32 56.5 28.6 53Z" fill="#E0A33C"/>
+          <path d="M7 60c8-4 42-4 50 0" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".85"/></svg>
+        <div><b>Sawn</b><span>National triage platform for school maintenance</span></div>
+      </div>
+      <div class="tright">
+        <span class="live"><span class="pulse"></span>Live · <span class="mono" id="upt">00:00</span></span>
+        <span class="clock" id="clk">—</span>
+        <div class="who"><b id="whoN">—</b><span id="whoR">—</span></div>
+        <button class="out" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+    <div class="tabrow">
+      <button class="navback" id="backBtn" onclick="goBack()" title="Back (Esc)" disabled>‹</button>
+      <div class="tabs" id="tabs"></div>
+      <div class="hstats" id="hstats"></div>
+    </div>
+  </div>
+  <div class="databar">School, governorate and department names and statistics are <b>real</b> (Google Maps · SPA); risk scores and fault data are <b>illustrative</b>, for demonstration. The analysis and ranking run live during the demo.</div>
+  <div class="pipe" id="pipe" title="ITU-T Y.3172, clause 8.1: the node lit is the one this screen belongs to"><span class="pl">Y.3172</span>
+    <span data-n="SRC"><b>SRC</b><i>school evidence</i></span><span data-n="C"><b>C</b><i>department intake</i></span><span data-n="PP"><b>PP</b><i>de-identify, normalise</i></span>
+    <span data-n="M"><b>M</b><i>models + retrieval</i></span><span data-n="P"><b>P</b><i>human decision</i></span><span data-n="D"><b>D</b><i>dashboards, reports</i></span><span data-n="SINK"><b>SINK</b><i>work order, school screen</i></span>
+    <span data-n="MLFO"><b>MLFO</b><i>orchestrator, sandbox</i></span></div>
+
+  <div class="wrap">
+
+    <!-- ===== SCHOOL: new request ===== -->
+    <div class="view" id="v-new">
+      <div class="vhead"><div><h1>File a maintenance request</h1>
+        <p>Describe the fault in your own words. The engine reads it, estimates the severity of each indicator, computes the risk score and explains it before you submit.</p></div></div>
+      <div class="grid2">
+        <div class="panel">
+          <h4>Request details</h4><div class="sub">Balhakam Primary · Al Mandaq governorate · Sarat sector · 210 pupils</div>
+          <div class="fld"><label>Fault description</label>
+            <textarea id="rqText" rows="5">After last week’s rain a crack appeared in the load bearing wall of the classroom corridor. It is widening and shedding debris in the damp, and every pupil uses that corridor daily.</textarea></div>
+          <div class="fld"><label>Location in the school</label>
+            <select id="rqLoc"><option>Main building — classroom corridor</option><option>Outdoor yard</option><option>Administration building</option><option>Toilets</option></select></div>
+          <div class="fld"><label>Pupils affected</label><input id="rqPpl" value="210" inputmode="numeric"></div>
+          <button class="btn amber" onclick="analyzeReq()" id="anBtn">Analyse with AI</button>
+          <div class="aibox" id="anBox" style="display:none">
+            <div class="h"><span class="sp"></span><span>Engine analysis · computer vision and language</span></div>
+            <p id="anTxt">—</p><div class="tags" id="anTags"></div><div class="mini" id="anMini"></div>
+          </div>
+          <button class="btn" style="margin-top:12px;display:none" id="sendBtn" onclick="sendReq()">Submit to the national queue</button>
+        </div>
+        <div class="panel">
+          <h4>Proposed score</h4><div class="sub">Computed from eight weighted indicators. You can adjust any estimate before submitting</div>
+          <div style="display:flex;align-items:center;gap:16px;padding:14px;border-radius:10px;background:var(--paper);border:1px solid var(--line);margin-bottom:14px">
+            <div class="mono" id="nScore" style="font-size:40px;font-weight:600;letter-spacing:-2px">—</div>
+            <div style="font-size:12.5px;color:var(--mute)"><b id="nLvl" style="display:block;font-size:14.5px;color:var(--ink)">Awaiting analysis</b><span id="nAct">—</span></div>
+          </div>
+          <div id="nSliders"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SCHOOL: my requests ===== -->
+    <div class="view" id="v-mine">
+      <div class="vhead"><div><h1>My school requests</h1>
+        <p>Your rank in the regional queue, the reason for it and the repair window, updated live without a phone call.</p></div></div>
+      <div class="kpirow" id="mineKpi"></div>
+      <div class="panel"><h4>My school record</h4><div class="sub">Every request in full: indicators, governing instruments, the executing company, the signature. The repair window starts when the score is approved and is capped at one week.</div>
+        <div id="mineList"></div></div>
+    </div>
+
+    <!-- ===== ADMIN: queue ===== -->
+    <div class="view" id="v-queue">
+      <div class="vhead"><div><h1>Triage queue — Al Baha department</h1>
+        <p>991 schools in one source of truth. The order recomputes as each request arrives, and the repair window counts down in front of you.</p></div>
+        <span class="chip c-ai">the order recomputes automatically</span></div>
+      <div class="kpirow" id="qKpi"></div>
+      <div class="panel"><h4 id="qOrderHead">Requests ranked by risk</h4>
+        <div class="sub">Open any row for the explanation and the decision · highlighted rows just arrived · arrows show how far a request moved when the order changed</div>
+        <div class="statbar" id="queueBar"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div class="vswitch"><button id="qvT" class="on" onclick="setQView('table')">Table</button>
+          <button id="qvD" onclick="setQView('detail')">Full record</button></div>
+        <div class="vswitch"><button id="qoT" class="on" onclick="setQOrder('risk')">By risk</button>
+          <button id="qoD" onclick="setQOrder('date')">By date filed</button></div></div>
+        <div id="qDetail" style="display:none"></div>
+        <table><thead><tr><th style="width:52px">#</th><th>School</th><th style="width:88px">Sector</th><th>Fault</th>
+          <th style="width:66px">Score</th><th style="width:80px">Level</th><th style="width:112px">Time left</th><th style="width:86px">Status</th></tr></thead>
+          <tbody id="qBody"></tbody></table></div>
+    </div>
+
+    <!-- ===== POLICY: knowledge base and gaps ===== -->
+    <div class="view" id="v-policy">
+      <div class="vhead"><div><h1>Instruments and gaps</h1>
+        <p>Every decision in the platform cites a published instrument. What the system cannot ground is written here as a policy gap, not an operational error.</p></div>
+        <span class="chip c-ai">Retrieved from the knowledge base</span></div>
+      <div class="kpirow" id="pKpi"></div>
+      <div class="grid2">
+        <div class="panel"><h4>Ask the knowledge base</h4><div class="sub">Answers carry their source and link</div>
+          <div class="fld"><input id="pq" placeholder="e.g. who must inspect a blocked fire exit?"></div>
+          <button class="btn" onclick="askPolicy()">Search</button>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn ghost sm" onclick="askPolicy('Who must inspect a blocked fire exit?')">Exit inspection</button>
+            <button class="btn ghost sm" onclick="askPolicy('What binding deadline applies to completing the repair?')">Binding deadline</button>
+            <button class="btn ghost sm" onclick="askPolicy('Who is liable when the proposed ranking is overridden?')">Override liability</button>
+            <button class="btn ghost sm" onclick="askPolicy('What governs contracting a company and its liability for maintenance work?')">Contractor liability</button>
+            <button class="btn ghost sm" onclick="askPolicy('What legal weight does an electronic signature on the handover declaration carry?')">Validity of the electronic signature</button></div>
+          <div id="pAns" style="margin-top:12px"></div></div>
+        <div class="panel"><h4>Policy gap register</h4><div class="sub">Filled by running the platform</div>
+          <div id="pGaps"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== ADMIN: report to ministry ===== -->
+    <div class="view" id="v-report">
+      <div class="vhead"><div><h1>Report to ministry</h1>
+        <p>The engine drafts the department’s report from the live queue, then sends it straight to the ministry inbox where it is ranked automatically among the other departments’ reports.</p></div></div>
+      <div class="grid2">
+        <div class="panel">
+          <h4>Report generated</h4><div class="sub">Based on the cases open right now in the Al Baha department</div>
+          <div class="fld"><label>Report scope</label>
+            <select id="repScope"><option>Critical and high cases — all departments</option><option>Sarat sector only</option><option>Tihamah sector only</option></select></div>
+          <div class="fld"><label>Department director’s note (optional)</label>
+            <textarea id="repNote" rows="3" placeholder="Any extra context you want the report to carry"></textarea></div>
+          <button class="btn amber" id="repBtn" onclick="genReport()">Draft the report with AI</button>
+          <div class="aibox" id="repBox" style="display:none">
+            <div class="h"><span class="sp"></span><span>Report draft</span></div>
+            <p id="repTxt">—</p><div class="mini" id="repMini"></div>
+          </div>
+          <button class="btn" style="margin-top:12px;display:none" id="repSend" onclick="sendReport()">Send the report to the ministry</button>
+        </div>
+        <div class="panel"><h4>Reports filed by this department</h4><div class="sub">written to the audit trail on sending</div>
+          <div id="sentList" style="font-size:12.5px;color:var(--mute)">No report has been filed this session yet.</div></div>
+      </div>
+    </div>
+
+    <!-- ===== MINISTRY: national map ===== -->
+    <div class="view" id="v-map">
+      <div class="vhead"><div><h1>National risk map</h1>
+        <p>Thirteen education regions on one model and one audit trail. Al Baha is shaded as the first calibration case.</p></div></div>
+      <div class="crumb" id="crumb"></div>
+      <div class="kpirow" id="mKpi"></div>
+      <div id="mBody"></div>
+    </div>
+
+    <!-- ===== MINISTRY: AI-ranked inbox ===== -->
+    <div class="view" id="v-inbox">
+      <div class="vhead"><div><h1>Department reports — ranked by AI</h1>
+        <p>Every report from a department is read automatically within seconds: an urgency score, a two-line summary and an executive recommendation, then it is ranked among the rest without human handling.</p></div>
+        <button class="btn sm amber" id="rankBtn" onclick="rankReports()">Reorder now</button></div>
+      <div class="kpirow" id="iKpi"></div>
+      <div class="panel"><h4>Inbox</h4><div class="sub">Ordered by urgency rather than arrival · refreshes as each report lands</div>
+        <div id="inbox"></div></div>
+    </div>
+
+    <!-- ===== MINISTRY: assistant ===== -->
+    <div class="view" id="v-ask">
+      <div class="vhead"><div><h1>Ask Sawn</h1>
+        <p>An assistant answering over the platform’s live data: queues, scores, repair windows and department reports.</p></div></div>
+      <div class="panel">
+        <div class="chat" id="chat">
+          <div class="msg a"><span class="b">Ask me about the current state. For example: which department in Al Baha carries the highest risk and why, or how many critical cases have run past their repair window.</span></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <input id="askIn" placeholder="Type your question" style="flex:1;font-family:var(--ar);font-size:14px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;outline:none">
+          <button class="btn sm" onclick="ask()" id="askBtn">Send</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn ghost sm" onclick="quick('Which department in Al Baha carries the highest risk, and why?')">Highest risk departments</button>
+          <button class="btn ghost sm" onclick="quick('Which cases are past their repair window or close to it?')">Overdue cases</button>
+          <button class="btn ghost sm" onclick="quick('Where should next quarter’s budget be spent in Al Baha?')">Budget direction</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GOVERNANCE ===== -->
+    <div class="view" id="v-gov">
+      <div class="vhead"><div><h1>Governance and fairness</h1>
+        <p>A system that ranks schools needs something that governs the system. This screen answers four questions: who may change the weights, whether the model is fair, how often people overrode it and why, and under which controls it runs.</p></div></div>
+      <div id="govBody"></div>
+    </div>
+
+    <!-- ===== AUDIT ===== -->
+    <div class="view" id="v-audit">
+      <div class="vhead"><div><h1>Append-only audit trail</h1>
+        <p>Every score, decision, override and model inference is written to a linked hash chain, aligned with NCA ECC-2:2024 and ISO/IEC 27001.</p></div></div>
+      <div class="kpirow" id="aKpi"></div>
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div><h4>Entries</h4><div class="sub">Each entry is linked to the hash of the one before it, so editing any line breaks the whole chain</div></div>
+          <button class="btn ghost sm" id="rawBtn" onclick="toggleRaw()">Technical view</button>
+        </div>
+        <div class="filters" id="afilters"></div>
+        <div id="audList"></div>
+        <div class="aud" id="aud" style="display:none"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $=i=>document.getElementById(i);
+const now=()=>Date.now();
+const H=3600000;
+
+/* ========== INTRO ========== */
+/* the Kingdom as a dot grid, sampled from its actual border coordinates */
+const BORDER=[[34.9,29.35],[36.0,29.6],[37.0,30.0],[38.0,30.5],[38.9,31.9],[40.4,31.9],[42.1,31.1],[44.7,29.2],
+[46.4,29.1],[47.7,28.5],[48.8,27.7],[49.0,26.5],[50.2,26.2],[50.8,25.5],[51.6,24.6],[52.6,22.9],[55.2,22.7],
+[55.7,22.0],[54.9,19.9],[52.0,19.0],[49.0,18.6],[47.0,17.5],[45.2,17.4],[43.4,17.4],[43.2,16.6],[42.8,16.4],
+[41.8,17.5],[40.8,19.7],[39.1,21.3],[38.5,23.0],[37.2,24.3],[36.6,25.7],[35.5,27.5],[34.6,28.1]];
+const LNG0=34.2,LNG1=56.2,LAT0=16.2,LAT1=32.4,COLS=26,RWS=19,MW=520,MH=380;
+const inside=(x,y)=>{let r=false;for(let i=0,j=BORDER.length-1;i<BORDER.length;j=i++){
+  const[xi,yi]=BORDER[i],[xj,yj]=BORDER[j];
+  if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)r=!r;}return r;};
+(function(){
+  const bc=Math.floor((41.47-LNG0)/(LNG1-LNG0)*COLS),br=Math.floor((LAT1-20.01)/(LAT1-LAT0)*RWS);
+  let s='';
+  for(let r=0;r<RWS;r++){const lat=LAT1-(r+.5)*(LAT1-LAT0)/RWS;
+    for(let c=0;c<COLS;c++){const lng=LNG0+(c+.5)*(LNG1-LNG0)/COLS;
+      if(!inside(lng,lat))continue;
+      const isB=(r===br&&c===bc);
+      s+=`<circle class="d"${isB?' id="baha"':''} cx="${((c+.5)*MW/COLS).toFixed(1)}" cy="${((r+.5)*MH/RWS).toFixed(1)}" r="2.8"/>`;}}
+  $('dots').innerHTML=s;
+})();
+let seqDone=false;
+function endIntro(){
+  if(seqDone)return;seqDone=true;
+  $('intro').classList.add('gone');$('skip').style.display='none';
+  setTimeout(()=>{$('intro').style.display='none';$('login').classList.add('on');},800);
+}
+$('skip').addEventListener('click',endIntro);
+let countIV=null;
+function seq(){
+  /* 1 — the bell fills and strikes */
+  setTimeout(()=>{
+    document.querySelectorAll('#bell .fillme').forEach(e=>e.style.fill='#fff');
+    const dr=$('door');dr.style.fill='#07252B';dr.style.stroke='#07252B';
+    $('clap').style.opacity='1';
+    document.querySelectorAll('.ring').forEach((r,i)=>setTimeout(()=>r.classList.add('go'),i*400));
+  },1800);
+  /* 2 — the sound reaches every school in the Kingdom */
+  setTimeout(()=>{
+    $('bell').style.transform='scale(.78)';
+    $('mapwrap').classList.add('on');
+    document.querySelectorAll('.d').forEach((x,i)=>setTimeout(()=>x.classList.add('lit'),i*6));
+  },2700);
+  /* 3 — the number climbs */
+  setTimeout(()=>{
+    $('counter').classList.add('on');
+    const t0=performance.now(),dur=2100;
+    countIV=setInterval(()=>{
+      const p=Math.min(1,(performance.now()-t0)/dur);
+      $('cnum').textContent=Math.round(100000*(1-Math.pow(1-p,3))).toLocaleString('en-US');
+      if(p>=1){clearInterval(countIV);countIV=null;}
+    },30);
+  },3200);
+  /* 4 — one hundred thousand collapse into one: Al-Baha */
+  setTimeout(()=>{
+    if(countIV){clearInterval(countIV);countIV=null;}
+    $('cnum').textContent='1';
+    $('clbl').textContent='One school cannot wait, and Sawn knows which one';
+    const b=$('baha');
+    document.querySelectorAll('.d').forEach(x=>{if(x!==b)x.classList.add('dim')});
+    if(b){
+      b.classList.add('crit');b.setAttribute('r','6.5');
+      const co=$('callout'),mw=$('mapwrap');
+      co.style.left=(+b.getAttribute('cx')/520*mw.clientWidth)+'px';
+      co.style.top=(+b.getAttribute('cy')/380*$('dots').clientHeight)+'px';
+      co.classList.add('on');
+    }
+  },5800);
+  /* 5 — the wordmark */
+  setTimeout(()=>{
+    $('callout').classList.remove('on');
+    $('mapwrap').style.display='none';
+    $('counter').style.display='none';
+    $('bell').style.transform='scale(.62)';
+    $('wordmark').style.display='block';
+    requestAnimationFrame(()=>$('wordmark').classList.add('on'));
+  },8100);
+  setTimeout(endIntro,10600);
+}
+seq();
+
+/* ========== DATA ========== */
+const IND=[{k:'str',n:'Structural integrity',w:.20},{k:'elc',n:'Electrical and fire',w:.18},
+{k:'wtr',n:'Water and sanitation',w:.14},{k:'dis',n:'Lost teaching time',w:.12},
+{k:'ppl',n:'People affected',w:.10},{k:'hvc',n:'Cooling and ventilation',w:.10},
+{k:'wai',n:'Waiting time and escalation',w:.08},{k:'ctx',n:'Context fragility (age, remoteness)',w:.08}];
+
+const SCHOOLS=[
+ ['Balhakam Primary','Al Mandaq','Sarat',210],['King Fahd Secondary for Boys','Al Mikhwah','Tihamah',760],
+ ['Raghadan Primary','Al Baha','Sarat',540],['Al Qufail and Siyal Primary for Girls','Al Mikhwah','Tihamah',180],
+ ['Imam Ibn Kathir Intermediate','Al Baha','Sarat',480],['Al Saudia Primary, Baljurashi','Baljurashi','Sarat',430],
+ ['Baljurashi Secondary — Tracks','Baljurashi','Sarat',820],['Al Aqiq Primary','Al Aqiq','Sarat',290],
+ ['Othman bin Affan Primary and Intermediate','Qilwah','Tihamah',350],
+ ['Prince Mohammed bin Saud Intermediate and Secondary','Al Baha','Sarat',910],
+ ['Al Nasba Primary','Al Mandaq','Sarat',150],['Umama bint Abi Al Aas Intermediate, Al Saghra','Bani Hassan','Sarat',230],
+ ['Al Khalidiyah Primary, Al Baha city','Al Baha','Sarat',620],['Al Khalif Primary','Qilwah','Tihamah',120],
+ ['Suhaima bint Aslam Primary, Al Jamajim','Al Mandaq','Sarat',160],['Zainab bint Abi Rafi Secondary — Tracks','Al Aqiq','Sarat',380],
+ ['Ghamid Intermediate','Baljurashi','Sarat',410],['Zainab bint Jahsh Primary, Bashir','Al Baha','Sarat',330]];
+
+const FAULTS=[
+ ['Cracking in a load bearing corridor wall, widening after rain and shedding debris',{str:9,elc:2,wtr:6,dis:8,ppl:5,hvc:2,wai:3,ctx:9}],
+ ['Short circuit in the main distribution board with a burning smell and repeated outages',{str:2,elc:9,wtr:2,dis:7,ppl:8,hvc:6,wai:4,ctx:5}],
+ ['Water leaking through the corridor roof and flooding three classrooms when it rains',{str:5,elc:5,wtr:9,dis:6,ppl:6,hvc:2,wai:3,ctx:6}],
+ ['Air conditioning failure in five classrooms during unbearable heat in Tihamah',{str:1,elc:5,wtr:2,dis:8,ppl:5,hvc:10,wai:6,ctx:8}],
+ ['Sewage backing up in the toilets with spreading odours',{str:2,elc:2,wtr:9,dis:6,ppl:6,hvc:2,wai:5,ctx:6}],
+ ['Subsidence in the yard paving in front of the emergency exits',{str:7,elc:1,wtr:3,dis:5,ppl:6,hvc:1,wai:6,ctx:4}],
+ ['Fire alarm system faulty and extinguishers failing inspection',{str:2,elc:8,wtr:1,dis:4,ppl:6,hvc:2,wai:5,ctx:5}],
+ ['Damp and damage in the suspended ceilings, with sections falling',{str:6,elc:4,wtr:8,dis:6,ppl:4,hvc:2,wai:3,ctx:8}],
+ ['Classroom doors and windows damaged and no longer closing in cold weather',{str:2,elc:1,wtr:2,dis:5,ppl:4,hvc:6,wai:4,ctx:8}],
+ ['Replacing the failing lighting in the rear corridors',{str:1,elc:3,wtr:1,dis:2,ppl:5,hvc:1,wai:8,ctx:2}],
+ ['Emergency exit from the science wing chained shut; it is the only exit on that side of the building',{str:2,elc:9,wtr:1,dis:8,ppl:8,hvc:2,wai:1,ctx:5}]];
+
+const OFFICES=[['Al Baha','Sarat'],['Baljurashi','Sarat'],['Al Mikhwah','Tihamah'],['Al Mandaq','Sarat'],
+ ['Al Aqiq','Sarat'],['Qilwah','Tihamah'],['Bani Hassan','Sarat']];
+const REGIONS=[['Riyadh',62],['Makkah',59],['Madinah',54],['Qassim',57],['Eastern Province',48],['Asir',66],
+ ['Tabuk',44],['Hail',51],['Northern Borders',46],['Jazan',69],['Najran',58],['Al Baha',0],['Al Jouf',45]];
+
+const ROLE={school:{n:'A. Alghamdi',r:'principal, Balhakam Primary, Al Mandaq',tabs:[['v-new','File a request'],['v-mine','My school requests'],['v-ask','Ask Sawn']]},
+ admin:{n:'Maintenance directorate',r:'Al Baha regional education department',tabs:[['v-queue','Triage queue'],['v-policy','Instruments and gaps'],['v-ask','Ask Sawn'],['v-report','Report to ministry'],['v-gov','Governance and fairness'],['v-audit','Audit trail']]},
+ ministry:{n:'decision centre',r:'Ministry of Education — buildings directorate',tabs:[['v-map','National map'],['v-inbox','Department reports (AI)'],['v-policy','Instruments and gaps'],['v-ask','Ask Sawn'],['v-gov','Governance and fairness'],['v-audit','Audit trail']]}};
+
+let role='school',pending=null,reqs=[],reports=[],prevOrder=[],seqNo=1040,hh=0x3f1a77,started=now(),aiCalls=0,aiMs=0;
+
+/* ========== HELPERS ========== */
+/* Emergency triage does not average: a single danger signal is enough.
+   Score = 40% total burden (the weighted matrix) + 60% peak safety hazard.
+   On top of that, the mandatory escalation rule: an immediate threat to life (structural >= 8 or electrical/fire >= 8)
+   raises the level to Critical regardless of the numeric score. */
+const burdenOf=v=>IND.reduce((a,i)=>a+i.w*(v[i.k]||0)*10,0);
+const peakOf=v=>Math.max((v.str||0)*10,(v.elc||0)*10,(v.wtr||0)*9,(v.hvc||0)*8);
+const scoreOf=v=>Math.round(.4*burdenOf(v)+.6*peakOf(v));
+const mustEscalate=v=>(v.str||0)>=8||(v.elc||0)>=8;
+const lvlOf=n=>n>=75?['Critical','c-crit','#C0392B','Intervene within 24 hours',24]
+  :n>=55?['High','c-high','#D08A2A','Repair within 72 hours',72]
+  :n>=35?['Medium','c-med','#178C6C','Repair within 5 days',120]
+  :['Routine','c-low','#7D9296','Repair within 7 days, the ceiling',168];
+/* Level actual, after the escalation rule */
+const lvlFor=r=>mustEscalate(r.v)?lvlOf(Math.max(r.score,75)):lvlOf(r.score);
+const col=n=>lvlOf(n)[2];
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3000);}
+const rnd=()=>{hh=(hh*1103515245+12345)&0x7fffffff;return hh.toString(16).padStart(8,'0').slice(-8)};
+/* readable audit trail: every entry is stored, translated, and hash-chained */
+const EV={
+ AUTH_SUCCESS:['Verified sign-in','auth'],ROLE_RESOLVED:['Authority resolved from the HR record','auth'],
+ SCHOOL_FEEDBACK:['School rating of the work','rep'],SIGNATURE_AFFIXED:['Electronic signature on the handover declaration','dec'],WORK_ORDER_ISSUED:['Work order issued to a named party','dec'],HANDOVER_RECORDED:['Handover and notes recorded','dec'],POLICY_RETRIEVED:['Instrument retrieved','gov'],POLICY_GAP_FOUND:['Policy gap found','gov'],SESSION_STARTED:['Session started','auth'],
+ REQUEST_SUBMITTED:['School files a maintenance request','req'],REQUEST_RECEIVED:['New maintenance request received','req'],
+ SCORE_COMPUTED:['Risk score computed','ai'],AI_ANALYSIS:['AI analysis of the fault description','ai'],
+ EXPLANATION_GENERATED:['Explanation generated','ai'],REPORTS_RANKED:['Department reports ranked by AI','ai'],
+ REPORT_DRAFTED:['Report draft written','ai'],ESCALATION_PREDICTED:['Escalation forecast','ai'],
+ ASSISTANT_QUERY:['Query over platform data','ai'],
+ REPORT_SUBMITTED:['Report sent to the ministry','rep'],SCHOOL_NOTIFIED:['School notified of the decision','rep'],
+ RANK_PUBLISHED:['Publish the updated order','rep'],
+ DECISION_APPROVED:['Repair decision approved','dec'],HUMAN_OVERRIDE:['Human override of the engine’s order','dec'],
+ FAIRNESS_CHECK:['Periodic fairness check','gov'],ANOMALY_FLAGGED:['Reporting anomaly detected','gov'],
+ MODEL_LOADED:['Risk model loaded','gov']};
+const CATN={auth:'Sign-in and authority',req:'Requests',ai:'AI engine',dec:'Decisions',rep:'Reporting',gov:'Governance'};
+EV.SANDBOX_RUN=['Counterfactual run in the sandbox (Y.3181)','gov'];
+function actorAr(a){
+  if(!a)return'—';
+  const m={'engine.lm':'Sawn engine','engine.v2.1':'Weighted matrix engine','engine.local':'Built-in engine',
+   'governance.job':'Periodic governance job','nafath.id-verify':'National ID verification','moe.sso':'Ministry single sign-on',
+   'hr.faris':'Ministry HR record','notify.svc':'Notification service','gateway':'Platform gateway','procurement.etimad':'Government contracting channel','kb.retrieval':'Knowledge base retrieval layer',
+   'region.al-baha':'Al Baha regional education department','ministry.decision':'Ministry of Education — decision centre',
+   'ministry.dashboard':'Ministry dashboard'};
+  if(m[a])return m[a];
+  const clean=a.replace(' · nafath-verified','');
+  if(m[clean])return m[clean]+' · verified by national ID';
+  if(clean.startsWith('field.'))return'Supervising engineer · membership '+clean.slice(6);
+  if(clean.startsWith('school.'))return'School principal, '+clean.slice(7).replace('balhakam','Balhakam Primary')+' (Al Mandaq education department)';
+  if(clean.startsWith('office.'))return'Education department, '+clean.slice(7).replace('almandaq','Al Mandaq').replace('qilwah','Qilwah');
+  if(a.includes('@'))return'Ministry account';
+  return a;
+}
+function relTime(t){
+  const s=Math.round((now()-t)/1000);
+  if(s<10)return'just now';if(s<60)return`${s} seconds ago`;
+  const m=Math.round(s/60);if(m<60)return`${m} minutes ago`;
+  return`${Math.round(m/60)} hours ago`;
+}
+let AUDIT=[],prevHash='000000000000',auditFilter='all',rawView=false;
+function log(act,actor,ref){
+  const h=rnd()+rnd(),n=seqNo++;
+  AUDIT.unshift({n,t:now(),act,actor,ref:ref||'',hash:h,prev:prevHash,fresh:true});
+  prevHash=h;
+  if(AUDIT.length>140)AUDIT.pop();
+  setTimeout(()=>{const e=AUDIT.find(x=>x.n===n);if(e)e.fresh=false;},2600);
+  renderAudit();renderAuditKpi();
+}
+function toggleRaw(){
+  rawView=!rawView;
+  $('rawBtn').textContent=rawView?'Readable view':'Technical view';
+  $('audList').style.display=rawView?'none':'block';
+  $('aud').style.display=rawView?'block':'none';
+  renderAudit();
+}
+function setFilter(c){auditFilter=c;renderAudit();}
+function askPolicy(q){
+  q=(q||($('pq')?$('pq').value:'')).trim(); if(!q)return;
+  if($('pq'))$('pq').value=q;
+  const hits=retrieve(q,3),strong=hits.filter(governsQuestion);
+  if(strong.length){
+    $('pAns').innerHTML=strong.map(clauseCard).join('');
+    log('POLICY_RETRIEVED','kb.retrieval',q.slice(0,60));
+  }else{
+    $('pAns').innerHTML='<div class="gapbox"><b>No published instrument answers this.</b> The question is written to the gap register.</div>';
+    logGap(q,'user query',hits);
+    log('POLICY_GAP_FOUND','kb.retrieval',q.slice(0,60));
+    renderPolicy();
+  }
+}
+function renderPolicy(){
+  const el=$('pGaps'); if(!el)return;
+  reqs.forEach(r=>{ if(stageOf(r)!=='done') policyFor(r); });
+  el.innerHTML=POLICY_GAPS.length?`<table><thead><tr><th>Decision or question</th><th style="width:110px">Raised by</th>
+    <th style="width:118px">Nearest match</th></tr></thead><tbody>${POLICY_GAPS.map(g=>
+    `<tr><td>${g.q}</td><td style="font-size:11.5px;color:var(--mute)">${g.src}</td>
+     <td style="font-size:11.5px;color:var(--mute)" class="mono">${g.near}</td></tr>`).join('')}</tbody></table>`
+    :'<div style="font-size:12.5px;color:var(--mute)">No gaps yet.</div>';
+  $('pKpi').innerHTML=`<div class="kpi"><b>${KB.length}</b><span>instruments in the knowledge base</span><i>all published, nothing confidential</i></div>
+   <div class="kpi ai"><b>${reqs.filter(r=>retrieve(r.text,4).filter(governsRequest).length).length}</b><span>requests grounded in an instrument</span><i>from ${reqs.length}</i></div>
+   <div class="kpi crit"><b>${POLICY_GAPS.length}</b><span>policy gaps found</span><i>an output of the work, not a failure in it</i></div>`;
+}
+function renderAudit(){
+  const list=$('audList');if(!list)return;
+  const cats=['all','dec','ai','req','rep','auth','gov'];
+  const cnt=c=>c==='all'?AUDIT.length:AUDIT.filter(e=>(EV[e.act]?.[1])===c).length;
+  $('afilters').innerHTML=cats.map(c=>`<button class="fchip${auditFilter===c?' on':''}" onclick="setFilter('${c}')">
+    ${c==='all'?'All':CATN[c]} <span class="fn">${cnt(c)}</span></button>`).join('');
+  const rows=AUDIT.filter(e=>auditFilter==='all'||(EV[e.act]?.[1])===auditFilter);
+  if(rawView){
+    $('aud').innerHTML=rows.map(e=>`<div><span>${new Date(e.t).toISOString().slice(11,19)}Z</span>`
+      +`<span class="a">${e.act}</span><span>#${e.n}</span><span dir="ltr">${e.actor}</span>`
+      +`<span class="h">sha256:${e.hash}</span></div>`).join('');
+    return;
+  }
+  list.innerHTML=rows.length?rows.map(e=>{
+    const d=EV[e.act]||[e.act,'gov'],cat=d[1];
+    return `<div class="ent e-${cat}${e.fresh?' fresh':''}">
+      <div class="etop"><span class="ename">${d[0]}</span>
+        <span class="ecode" dir="ltr">${e.act}</span>
+        <span class="etime">${fmtClock(e.t)} · ${relTime(e.t)}</span></div>
+      <div class="emeta"><span><b>Actor:</b> ${actorAr(e.actor)}</span>
+        ${e.ref?`<span><b>Reference:</b> <span class="ref">${e.ref}</span></span>`:''}</div>
+      <div class="ehash"><span class="qn">entry ${e.n}</span>
+        <span dir="ltr">sha256:${e.hash.slice(0,10)}…${e.hash.slice(-4)}</span>
+        <span class="lnk">linked to entry ${e.n-1}</span></div></div>`}).join('')
+    :'<div style="font-size:12.5px;color:var(--mute);padding:10px">No entries in this category yet.</div>';
+}
+function fmtLeft(ms){
+  if(ms<=0)return'Overdue';
+  const h=Math.floor(ms/H),m=Math.floor(ms%H/60000),s=Math.floor(ms%60000/1000);
+  return h>0?`${h} ${String(m).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function slaClass(r){const l=r.due-now();return l<=0?'late':l<r.window*H*0.3?'warn':'okk';}
+
+
+/* ===== knowledge base and retrieval ===== */
+var KB = [
+ {id:"SBC201", code:"SBC 201", auth:"Saudi Building Code National Committee", url:"https://sbc.gov.sa",
+  ttl_en:"General Building Code (structural provisions)", ttl_ar:"General Building Code (structural provisions)",
+  tags:["cracking", "load bearing", "debris", "subsidence", "paving", "falling", "sections", "ceilings", "suspended", "shedding", "fissure", "structural", "crack", "wall", "beam", "column", "collapse", "ceiling", "roof"],
+  en:"The Kingdom's general building code. Its structural design chapter applies the SBC 301 loading requirements to load bearing elements. Damage to a load bearing element is a structural condition and is assessed against this code rather than treated as a cosmetic defect.",
+  ar:"The Kingdom's general building code. Its structural design chapter applies the SBC 301 loading requirements to load bearing elements. Damage to a load bearing element is a structural condition and is assessed against this code rather than treated as a cosmetic defect."},
+
+ {id:"SBC401", code:"SBC 401", auth:"Saudi Building Code National Committee", url:"https://sbc.gov.sa",
+  ttl_en:"Electrical requirements", ttl_ar:"Electrical requirements",
+  tags:["distribution board", "short circuit", "burning", "outage", "lighting", "wiring", "installations", "electrical", "panel", "exposed", "shock", "socket", "fittings", "corridor", "corridors", "replacing", "luminaire"],
+  en:"Covers electrical installations, protection and safe enclosure of distribution equipment. An exposed or unsecured panel in an occupied area is a defect under this code.",
+  ar:"Covers electrical installations, protection and safe enclosure of distribution equipment. An exposed or unsecured panel in an occupied area is a defect under this code."},
+
+ {id:"SBC801", code:"SBC 801", auth:"Saudi Building Code National Committee", url:"https://sbc.gov.sa",
+  ttl_en:"Fire protection requirements", ttl_ar:"Fire protection requirements",
+  tags:["alarm", "extinguishers", "inspection", "exits", "emergency", "evacuation", "smoke", "fire", "exit", "egress", "door", "blocked"],
+  en:"Governs means of egress, fire separation and protection systems. Exits must stay usable at all times, so a blocked or locked exit is a life safety failure and not a scheduling matter.",
+  ar:"Governs means of egress, fire separation and protection systems. Exits must stay usable at all times, so a blocked or locked exit is a life safety failure and not a scheduling matter."},
+
+ {id:"CIVDEF", code:"Civil Defence", auth:"General Directorate of Civil Defence", url:"https://998.gov.sa",
+  ttl_en:"Fire safety requirements for occupied premises", ttl_ar:"Fire safety requirements for occupied premises",
+  tags:["extinguishers", "alarm", "emergency exits", "periodic inspection", "requirements", "evacuation", "fire", "safety", "inspection", "school", "occupancy"],
+  en:"Sets safety requirements and inspection powers for occupied premises including schools, covering evacuation routes, extinguishers and alarm systems.",
+  ar:"Sets safety requirements and inspection powers for occupied premises including schools, covering evacuation routes, extinguishers and alarm systems."},
+
+ {id:"MOE-FAC", code:"MoE specs", auth:"Ministry of Education", url:"https://moe.gov.sa",
+  ttl_en:"School facility specifications and operating procedures", ttl_ar:"School facility specifications and operating procedures",
+  tags:["drainage", "sanitation", "Toilets", "odours", "damp", "doors", "windows", "air conditioning", "ventilation", "lighting", "yard", "paving", "periodic", "operation", "school", "facility", "maintenance", "request", "procedure", "principal", "leak", "water", "roof", "damage", "repair"],
+  en:"Defines how school facilities are specified, operated and reported on, and how a principal raises a maintenance request through the ministry chain.",
+  ar:"Defines how school facilities are specified, operated and reported on, and how a principal raises a maintenance request through the ministry chain."},
+
+ {id:"TBC", code:"TBC mandate", auth:"Tatweer Buildings Company", url:"https://www.tbc.sa",
+  ttl_en:"Executing arm for education buildings", ttl_ar:"Executing arm for education buildings",
+  tags:["contractor", "work order", "facility management", "execution", "school building", "maintenance"],
+  en:"Government company owned by the Public Investment Fund that operates as the executing arm for Ministry of Education building projects, covering construction, operation and maintenance of school buildings through a control centre linked to principals and contractors.",
+  ar:"Government company owned by the Public Investment Fund that operates as the executing arm for Ministry of Education building projects, covering construction, operation and maintenance of school buildings through a control centre linked to principals and contractors."},
+
+ {id:"PDPL", code:"PDPL", auth:"SDAIA", url:"https://sdaia.gov.sa",
+  ttl_en:"Personal Data Protection Law", ttl_ar:"Personal Data Protection Law",
+  tags:["personal data", "privacy", "consent", "purpose", "minor", "child", "image", "photo"],
+  en:"Governs the processing of personal data in the Kingdom, including lawful basis, purpose limitation and data minimisation. Photographs taken inside a school may capture students, which brings maintenance imagery into scope.",
+  ar:"Governs the processing of personal data in the Kingdom, including lawful basis, purpose limitation and data minimisation. Photographs taken inside a school may capture students, which brings maintenance imagery into scope."},
+
+ {id:"NDMO", code:"NDMO", auth:"SDAIA / National Data Management Office", url:"https://sdaia.gov.sa",
+  ttl_en:"National data governance and classification", ttl_ar:"National data governance and classification",
+  tags:["classification", "sensitive", "sharing", "governance", "residency", "sensor", "availability"],
+  en:"Sets national rules for data governance, classification and sharing between entities. Classification decides how a dataset may be shared, stored and exposed to third parties.",
+  ar:"Sets national rules for data governance, classification and sharing between entities. Classification decides how a dataset may be shared, stored and exposed to third parties."},
+
+ {id:"AIETH", code:"AI Ethics", auth:"SDAIA", url:"https://sdaia.gov.sa",
+  ttl_en:"AI ethics principles", ttl_ar:"AI ethics principles",
+  tags:["fairness", "transparency", "accountability", "human oversight", "explainability", "bias"],
+  en:"National principles for artificial intelligence covering fairness, transparency, accountability, reliability, privacy and human oversight. They are principles rather than enforceable controls, so they guide design without prescribing an appeal mechanism.",
+  ar:"National principles for artificial intelligence covering fairness, transparency, accountability, reliability, privacy and human oversight. They are principles rather than enforceable controls, so they guide design without prescribing an appeal mechanism."},
+
+ {id:"ECC", code:"ECC-2:2024", auth:"National Cybersecurity Authority", url:"https://nca.gov.sa",
+  ttl_en:"Essential Cybersecurity Controls", ttl_ar:"Essential Cybersecurity Controls",
+  tags:["access control", "audit", "log", "identity", "asset", "third party", "credential", "access rights"],
+  en:"The national cybersecurity baseline for government entities and critical infrastructure, covering governance, defence, resilience and third party and cloud security. Access control, logging and supplier obligations sit here.",
+  ar:"The national cybersecurity baseline for government entities and critical infrastructure, covering governance, defence, resilience and third party and cloud security. Access control, logging and supplier obligations sit here."},
+
+ {id:"CCC", code:"CCC-1:2020", auth:"National Cybersecurity Authority", url:"https://nca.gov.sa",
+  ttl_en:"Cloud cybersecurity controls", ttl_ar:"Cloud cybersecurity controls",
+  tags:["cloud", "hosting", "residency", "provider", "tenant", "data residency"],
+  en:"Controls for cloud service providers and government tenants, including hosting location and separation duties for hosted government data.",
+  ar:"Controls for cloud service providers and government tenants, including hosting location and separation duties for hosted government data."},
+
+ {id:"DGA", code:"DGA", auth:"Digital Government Authority", url:"https://dga.gov.sa",
+  ttl_en:"Digital government standards; Nafath identity (NIC)", ttl_ar:"Digital government standards; Nafath identity (NIC)",
+  tags:["authentication", "identity", "interoperability", "api", "integration", "accessibility", "National ID", "API", "access"],
+  en:"Standards for government digital services covering interoperability, integration and access. Nafath, the national single sign on operated by the National Information Center under SDAIA (iam.gov.sa), is the identity layer those standards rely on.",
+  ar:"Standards for government digital services covering interoperability, integration and access. Nafath, the national single sign on operated by the National Information Center under SDAIA (iam.gov.sa), is the identity layer those standards rely on."},
+
+ {id:"ETRANS", code:"Electronic Transactions Law", auth:"Royal Decree M/18 (2007); administered by MCIT", url:"https://www.mcit.gov.sa",
+  ttl_en:"Electronic Transactions Law", ttl_ar:"Electronic Transactions Law",
+  tags:["signature", "electronic", "legal weight", "declaration", "transaction", "log", "documentation", "evidence"],
+  en:"Gives electronic transactions and electronic signatures legal effect in the Kingdom, and sets when an electronic record and signature carry the same weight as a written one.",
+  ar:"Gives electronic transactions and electronic signatures legal effect in the Kingdom, and sets when an electronic record and signature carry the same weight as a written one."},
+
+ {id:"NCDC", code:"Digital certification", auth:"National Center for Digital Certification (MCIT)", url:"https://www.mcit.gov.sa",
+  ttl_en:"National digital certification", ttl_ar:"National digital certification",
+  tags:["certificate", "digital", "certification", "signature", "identity", "trusted"],
+  en:"Operates the national framework for digital certificates that authenticate the identity behind an electronic signature.",
+  ar:"Operates the national framework for digital certificates that authenticate the identity behind an electronic signature."},
+
+ {id:"GTPL", code:"GTPL / Etimad", auth:"Ministry of Finance", url:"https://etimad.sa",
+  ttl_en:"Government tenders and procurement", ttl_ar:"Government tenders and procurement",
+  tags:["procurement", "contract", "vendor", "supplier", "tender", "sanction", "tenders", "contractor", "penalty"],
+  en:"Governs how government entities contract suppliers and how contractual obligations and penalties are applied to them.",
+  ar:"Governs how government entities contract suppliers and how contractual obligations and penalties are applied to them."},
+
+ {id:"ISO31000", code:"ISO 31000", auth:"ISO", url:"https://iso.org",
+  ttl_en:"Risk management guidelines", ttl_ar:"Risk management guidelines",
+  tags:["risk", "likelihood", "consequence", "treatment", "escalation", "criteria", "impact"],
+  en:"Guidelines for managing risk, including establishing criteria, evaluating risk by likelihood and consequence, and deciding treatment and escalation.",
+  ar:"Guidelines for managing risk, including establishing criteria, evaluating risk by likelihood and consequence, and deciding treatment and escalation."},
+
+ {id:"ISO27001", code:"ISO/IEC 27001", auth:"ISO/IEC", url:"https://iso.org",
+  ttl_en:"Information security management", ttl_ar:"Information security management",
+  tags:["information security", "control", "logging", "confidentiality", "records"],
+  en:"Requirements for an information security management system, including controls for logging, access and supplier relationships.",
+  ar:"Requirements for an information security management system, including controls for logging, access and supplier relationships."},
+
+ {id:"ISO42001", code:"ISO/IEC 42001", auth:"ISO/IEC", url:"https://iso.org",
+  ttl_en:"AI management system", ttl_ar:"AI management system",
+  tags:["ai management", "lifecycle", "model", "impact assessment", "documentation", "AI management"],
+  en:"Requirements for managing artificial intelligence systems across their lifecycle, including impact assessment, documentation and controlled change.",
+  ar:"Requirements for managing artificial intelligence systems across their lifecycle, including impact assessment, documentation and controlled change."},
+
+ {id:"ISO23894", code:"ISO/IEC 23894", auth:"ISO/IEC", url:"https://iso.org",
+  ttl_en:"AI risk management guidance", ttl_ar:"AI risk management guidance",
+  tags:["ai risk", "model failure", "monitoring", "bias", "AI risk"],
+  en:"Guidance on applying risk management to artificial intelligence, covering model failure, monitoring and unwanted outcomes.",
+  ar:"Guidance on applying risk management to artificial intelligence, covering model failure, monitoring and unwanted outcomes."},
+
+ {id:"Y3172", code:"ITU-T Y.3172", auth:"ITU-T Study Group 13", url:"https://www.itu.int/rec/T-REC-Y.3172",
+  ttl_en:"Architectural framework for machine learning", ttl_ar:"Architectural framework for machine learning",
+  tags:["pipeline", "src", "collector", "preprocessor", "model", "policy", "distributor", "sink", "orchestrator", "node"],
+  en:"Defines the machine learning pipeline as a chain of nodes: source, collector, preprocessor, model, policy, distributor and sink, together with the orchestrator that manages them.",
+  ar:"Defines the machine learning pipeline as a chain of nodes: source, collector, preprocessor, model, policy, distributor and sink, together with the orchestrator that manages them."},
+
+ {id:"Y3173", code:"ITU-T Y.3173", auth:"ITU-T Study Group 13", url:"https://www.itu.int/rec/T-REC-Y.3173",
+  ttl_en:"Evaluating intelligence levels", ttl_ar:"Evaluating intelligence levels",
+  tags:["intelligence level", "automation", "evaluation", "autonomy"],
+  en:"A framework for evaluating how much of a task is automated and how much still requires human involvement.",
+  ar:"A framework for evaluating how much of a task is automated and how much still requires human involvement."},
+
+ {id:"Y3174", code:"ITU-T Y.3174", auth:"ITU-T Study Group 13", url:"https://www.itu.int/rec/T-REC-Y.3174",
+  ttl_en:"Data handling framework", ttl_ar:"Data handling framework",
+  tags:["data handling", "reference point", "collection", "preprocessing"],
+  en:"A framework for handling data across the machine learning pipeline, including the reference points where data moves between nodes.",
+  ar:"A framework for handling data across the machine learning pipeline, including the reference points where data moves between nodes."},
+
+ {id:"Y3181", code:"ITU-T Y.3181", auth:"ITU-T Study Group 13", url:"https://www.itu.int/rec/T-REC-Y.3181",
+  ttl_en:"Machine learning sandbox", ttl_ar:"Machine learning sandbox",
+  tags:["sandbox", "simulation", "validation", "before deployment", "counterfactual", "Verify"],
+  en:"An architectural framework for a sandbox where a machine learning pipeline is trained and validated in simulation before it is applied to the live system.",
+  ar:"An architectural framework for a sandbox where a machine learning pipeline is trained and validated in simulation before it is applied to the live system."}
+];
+function normalise(s){
+  return String(s).toLowerCase()
+    .replace(/[\u064B-\u0652\u0640]/g,"")   // harakat and tatweel
+    .replace(/[\u0622\u0623\u0625]/g,"\u0627")
+    .replace(/\u0629/g,"\u0647")
+    .replace(/[\u0649]/g,"\u064A")
+    .replace(/[^\p{L}\p{N}\s]/gu," ");
+}
+var STOP = {"the":1,"and":1,"for":1,"with":1,"that":1,"this":1,"from":1,"are":1,"was":1,"how":1,"who":1,"can":1,"must":1,"what":1,"when":1,"does":1,"has":1,"have":1,"any":1,"its":1,"our":1,"their":1,"often":1,"should":1,"would":1,"into":1,"onto":1,
+  "\u0645\u0646":1,"\u0641\u064A":1,"\u0639\u0644\u064A":1,"\u0647\u0644":1,"\u0643\u064A\u0641":1,"\u0645\u0627":1,"\u0627\u0644\u062A\u064A":1,"\u0627\u0644\u0630\u064A":1,"\u0639\u0646\u062F":1,"\u064A\u062C\u0628":1,"\u0647\u0630\u0627":1,"\u0647\u0630\u0647":1};
+function tokens(s){
+  return normalise(s).split(/\s+/).filter(function(t){ return t.length>2 && !STOP[t]; });
+}
+var DOCS = KB.map(function(d){
+  var blob = [d.code,d.auth,d.ttl_en,d.ttl_ar,d.en,d.ar,d.tags.join(" ")].join(" ");
+  var tf = {}, ts = tokens(blob);
+  ts.forEach(function(t){ tf[t] = (tf[t]||0)+1; });
+  return {ref:d, tf:tf, len:ts.length};
+});
+var IDF = (function(){
+  var df = {}, N = DOCS.length;
+  DOCS.forEach(function(d){ Object.keys(d.tf).forEach(function(t){ df[t]=(df[t]||0)+1; }); });
+  var idf = {};
+  Object.keys(df).forEach(function(t){ idf[t] = Math.log(1 + N/df[t]); });
+  return idf;
+})();
+
+function retrieve(query, k){
+  var qt = tokens(query);
+  if(!qt.length) return [];
+  var out = DOCS.map(function(d){
+    var s = 0;
+    qt.forEach(function(t){
+      var f = d.tf[t]||0;
+      if(f) s += (IDF[t]||0.4) * (f/(f+1.2)) * 2.2;
+      else {
+        // partial match on longer terms
+        var keys = Object.keys(d.tf), hit = 0;
+        for(var i=0;i<keys.length;i++){
+          if(t.length>4 && (keys[i].indexOf(t)===0 || t.indexOf(keys[i])===0)){ hit=1; break; }
+        }
+        if(hit) s += 0.5;
+      }
+    });
+    var direct = 0;
+    qt.forEach(function(t){ if(d.tf[t]) direct++; });
+    return {doc:d.ref, score: s / Math.sqrt(1 + d.len/40), cover: direct/qt.length, hits: direct};
+  }).filter(function(r){ return r.score > 0; });
+  out.sort(function(a,b){ return b.score - a.score; });
+  return out.slice(0, k||4);
+}
+var GAP_THRESHOLD = 1.1;
+var COVER_FLOOR = 0.40;   // same floor as the reference build and the simulator
+/* Two grounding rules, because the two jobs are different.
+   A fault description is long and most of its words are not in the corpus, so lexical hits decide.
+   A typed policy question is short, and a single shared word must not produce a citation, so coverage decides. */
+function governsRequest(r){ return r && r.score >= GAP_THRESHOLD && r.hits >= 2; }
+function governsQuestion(r){ return r && r.score >= GAP_THRESHOLD && r.cover >= COVER_FLOOR; }
+function governs(r){ return governsQuestion(r); }
+var POLICY_GAPS=[];
+function logGap(q,src,hits){
+  for(var i=0;i<POLICY_GAPS.length;i++) if(POLICY_GAPS[i].q===q) return;
+  POLICY_GAPS.push({q:q,src:src,near:(hits&&hits.length)?hits[0].doc.code+' ('+hits[0].score.toFixed(2)+')':'—',at:Date.now()});
+}
+function clauseCard(r){
+  var d=r.doc;
+  return '<details class="clause"><summary><span class="ccode">'+d.code+'</span>'+
+   '<span class="cttl">'+d.ttl_ar+'</span><span class="crel">relevance '+r.score.toFixed(1)+'</span></summary>'+
+   '<div class="cdet">'+d.ar+'<span class="cauth">'+d.auth+' · <a href="'+d.url+'" target="_blank" rel="noopener">'+
+   d.url.replace(/^https?:\/\//,'')+'</a></span></div></details>';
+}
+/* the seven regression questions from the evaluation set: one per policy gap in section 5 of the report.
+   They are asked at load. If one of them starts being answered, a new instrument has closed that gap and the report needs updating. */
+var GAP_REGRESSION=[
+ 'What is the maximum number of days allowed to repair a critical school fault?',
+ 'Which body must approve a change to the risk matrix weights?',
+ 'How often must fairness across regions be published for a public AI system?',
+ 'How must a national map of the structurally weakest schools be classified?',
+ 'What stops a cloud provider reusing school risk data commercially?',
+ 'Where must a maintenance photograph of pupils be de-identified?',
+ 'Who is liable when an official overrides the ranking and the school is damaged?'];
+function runGapRegression(){
+  GAP_REGRESSION.forEach(function(q){
+    var hits=retrieve(q,3);
+    if(!hits.filter(governsQuestion).length) logGap(q,'regression set',hits);
+  });
+}
+/* the deadline question no published instrument answers */
+var DEADLINE_Q='the binding repair deadline for a school fault by severity level';
+function policyFor(r){
+  var hits=retrieve(r.text,4).filter(governsRequest);
+  var dl=retrieve(DEADLINE_Q,2).filter(governsQuestion);
+  if(!hits.length) logGap('No published instrument for the fault: '+r.text.slice(0,46),r.id,retrieve(r.text,1));
+  if(!dl.length) logGap('No instrument sets a maximum repair time for level '+lvlFor(r)[0],'deadline check',retrieve(DEADLINE_Q,1));
+  return {hits:hits,deadline:dl.length>0};
+}
+
+runGapRegression();
+
+/* ========== executing parties: who receives the work order and who signs for it ========== */
+const VENDORS=[
+ ['Emaar Educational Facilities Co.','7001234567','C-2026-114','M. Alomari','Chief executive and authorised signatory'],
+ ['Southern Construction Contracting Est.','7009887654','C-2026-207','N. Alshehri','Owner and authorised signatory'],
+ ['Al Baha Integrated Maintenance Co.','7004455221','C-2025-388','H. Alzahrani','Chief executive and authorised signatory']];
+const ENGS=[['S. Alzahrani','SCE-228744'],['R. Alghamdi','SCE-311902'],['F. Alqarni','SCE-190557']];
+function mkExec(vi,ei,issuedAt,notes,doneAt){
+  const v=VENDORS[vi],e=ENGS[ei];
+  return {co:v[0],cr:v[1],contract:v[2],head:v[3],headTitle:v[4],
+    eng:e[0],sce:e[1],issuedAt:issuedAt,doneAt:doneAt||null,notes:notes||'',sig:null};
+}
+/* signature electronic: a fingerprint over the declaration text, so any later edit breaks it */
+function sign(r,by,role,id){
+  const payload=[r.id,r.exec.notes,by,id,now()].join('|');
+  let h=0; for(let i=0;i<payload.length;i++){h=(h*31+payload.charCodeAt(i))>>>0;}
+  const sig=('00000000'+h.toString(16)).slice(-8)+rnd().slice(0,8);
+  return {by,role,id,at:now(),sig};
+}
+/* ========== SEED ========== */
+/* request ids are sequential, never random: a random id can collide, and a collision breaks the record lookup */
+let reqSeq=1041;
+const nextId=()=>'SWN-2026-'+(reqSeq++);
+function mkReq(si,fi,ageH,status){
+  const s=SCHOOLS[si],f=FAULTS[fi],v={...f[1]};
+  v.ppl=Math.min(10,Math.max(2,Math.round(s[3]/110)));
+  v.wai=Math.min(10,Math.round(ageH/24));
+  const sc=scoreOf(v),L=mustEscalate(v)?lvlOf(Math.max(sc,75)):lvlOf(sc),created=now()-ageH*H;
+  return {id:nextId(),school:s[0],gov:s[1],sector:s[2],students:s[3],
+    text:f[0],v,score:sc,level:L[0],esc:mustEscalate(v),window:L[4],due:created+L[4]*H,created,status:status||'Awaiting decision',ai:null};
+}
+[[0,0,26],[1,1,52],[3,3,80],[2,2,18],[8,4,44],[5,7,10],[7,6,64],[11,4,30],[4,5,120],[13,8,8],[12,9,190],[16,2,36],[9,10,5]]
+ .forEach(([a,b,c])=>reqs.push(mkReq(a,b,c)));
+/* history for the principal's own school, so the three states are visible */
+(function(){
+  const done1=mkReq(0,6,190,'Handled');done1.doneAt=now()-40*H;
+  done1.exec=mkExec(0,1,now()-186*H,'Replaced the central alarm panel, re-tested 14 extinguishers and recharged 3 of them. The sensor next to the lab gives a false alarm in high humidity and needs watching at the next inspection. The old loop wiring on the ground floor was not replaced; it is deferred to the refurbishment contract.',now()-40*H);
+  done1.exec.sig={eng:{by:done1.exec.eng,role:'Supervising engineer',id:done1.exec.sce,at:now()-40*H,sig:'a91f4c02d7e1b833'},
+    co:{by:done1.exec.head,role:done1.exec.headTitle,id:'CR '+done1.exec.cr,at:now()-39*H,sig:'6b20e7f1c4a90d55'}};
+  done1.fb={v:'Good',why:'The team came the next day and closed the request completely.',at:now()-36*H};
+  const done2=mkReq(0,9,150,'Handled');done2.doneAt=now()-12*H;
+  done2.exec=mkExec(2,0,now()-146*H,'Replaced 22 light fittings with LED units. The breaker feeding the rear corridor is old and barely carries the new load; replacing it before next summer is advised.',now()-12*H);
+  done2.exec.sig={eng:{by:done2.exec.eng,role:'Supervising engineer',id:done2.exec.sce,at:now()-12*H,sig:'3f7ca81b90e26d44'},co:null};
+  const prog=mkReq(0,3,70,'Under way');
+  prog.exec=mkExec(1,2,now()-30*H,'');
+  reqs.push(done1,done2,prog);
+})();
+
+/* ========== AI ========== */
+async function llm(){
+  /* This build has no external model path: every analysis runs on the engine
+     built into this file, so nothing ever leaves the browser. */
+  throw new Error("built-in engine only");
+}
+function parseJSON(t){
+  const c=t.replace(/```json|```/g,'').trim();
+  const a=c.indexOf('{'),b=c.indexOf('[');
+  const st=(a<0)?b:(b<0?a:Math.min(a,b));
+  return JSON.parse(c.slice(st,Math.max(c.lastIndexOf('}'),c.lastIndexOf(']'))+1));
+}
+/* offline fallback so the demo never breaks */
+function localAnalyze(text,ppl){
+  const has=r=>new RegExp(r).test(text);
+  const v={str:has('crack|cracking|structural|collapse|subsidence|load bearing|falling')?9:1,
+   elc:has('electric|short circuit|fire|burning|alarm|outage')?8:2,
+   wtr:has('leak|leaking|water|sewage|damp|rain|flood')?8:2,
+   dis:has('classroom|corridor|lesson|out of service|closed')?7:4,
+   ppl:Math.min(10,Math.max(2,Math.round((+ppl||200)/110))),
+   hvc:has('air conditioning|ventilation|heat|cold')?8:2,wai:3,
+   ctx:has('old|rented|remote|rural|damp|rain')?8:4};
+  return {severity:v,type:v.str>7?'cracking structural':v.elc>7?'electrical fault':v.wtr>7?'water leak':'operational fault',
+   confidence:0.86,escalation:v.str>7?0.71:0.34,
+   why:'Built-in analysis: the description contains signs of immediate danger, so the matching indicators were raised accordingly.'};
+}
+
+/* ========== SCHOOL: analyze ========== */
+let draft=null;
+async function analyzeReq(){
+  const text=$('rqText').value.trim(),ppl=$('rqPpl').value;
+  if(!text){toast('Write the fault description first');return;}
+  $('anBox').style.display='block';$('anBox').classList.add('load');
+  $('anTxt').textContent='The engine is reading the description and estimating the eight indicators';
+  $('anTags').innerHTML='';$('anMini').textContent='';$('anBtn').disabled=true;
+  const sys=`You are the school maintenance risk triage engine inside the Sawn platform of the Ministry of Education, Saudi Arabia.
+You read a fault description and rate the severity of eight indicators from 0 to 10.
+indicators: str=Structural integrity, elc=Electrical and fire, wtr=water and sanitation, dis=lost teaching time, ppl=People affected, hvc=Cooling and ventilation, wai=waiting time, ctx=context fragility.
+Return JSON only, with no other text and no Markdown, in the form:
+{"type":"Short classification","severity":{"str":0,"elc":0,"wtr":0,"dis":0,"ppl":0,"hvc":0,"wai":0,"ctx":0},"confidence":0.0,"escalation":0.0,"why":"Two sentences explaining the estimate to the school principal"}`;
+  const usr=`Fault description: ${text}\nLocation: ${$('rqLoc').value}\nPupils affected: ${ppl}\nSchool: Balhakam Primary, Al Mandaq governorate, Sarat sector (rainy highlands).`;
+  let a,ms=0,fallback=false;
+  try{const r=await llm(sys,usr,700);a=parseJSON(r.txt);ms=r.ms;}
+  catch(e){const t1=performance.now();a=localAnalyze(text,ppl);ms=Math.max(1,Math.round(performance.now()-t1));fallback=true;}
+  const v={};IND.forEach(i=>v[i.k]=Math.max(0,Math.min(10,+(a.severity?.[i.k]??0))));
+  v.wai=Math.max(v.wai,1);
+  draft={text,ppl:+ppl||210,v,ai:a};
+  $('anBox').classList.remove('load');$('anBtn').disabled=false;
+  $('anTxt').textContent=a.why||'—';
+  $('anTags').innerHTML=`<span class="chip c-ai">classification: ${a.type||'—'}</span>
+    <span class="chip c-info">model confidence ${(+a.confidence||0).toFixed(2)}</span>
+    <span class="chip ${(+a.escalation||0)>.5?'c-high':'c-info'}">probability of escalation within 30 days ${Math.round((+a.escalation||0)*100)}%</span>`;
+  aiCalls++;aiMs+=ms;$('anMini').textContent='built-in engine';
+  renderSliders();$('sendBtn').style.display='block';
+  log('AI_ANALYSIS','engine.local',`school.balhakam · built-in engine`);
+}
+function renderSliders(){
+  if(!draft)return;
+  $('nSliders').innerHTML=IND.map(i=>`<div class="ind">
+    <label for="d_${i.k}"><span>${i.n}<span class="wt">weight ${Math.round(i.w*100)}%</span></span><span id="dv_${i.k}">${draft.v[i.k]}/10</span></label>
+    <input type="range" id="d_${i.k}" min="0" max="10" value="${draft.v[i.k]}" aria-label="${i.n}"></div>`).join('');
+  IND.forEach(i=>$('d_'+i.k).addEventListener('input',e=>{draft.v[i.k]=+e.target.value;$('dv_'+i.k).textContent=draft.v[i.k]+'/10';draftScore();}));
+  draftScore();
+}
+function draftScore(){
+  const n=scoreOf(draft.v),e=mustEscalate(draft.v),L=e?lvlOf(Math.max(n,75)):lvlOf(n);
+  $('nScore').textContent=n;$('nScore').style.color=L[2];
+  $('nLvl').innerHTML='severity '+L[0]+(e?' <span class="chip c-crit" style="font-size:10px">Mandatory escalation</span>':'');
+  $('nAct').textContent=L[3];
+}
+function sendReq(){
+  if(!draft)return;
+  const n=scoreOf(draft.v),L=mustEscalate(draft.v)?lvlOf(Math.max(n,75)):lvlOf(n);
+  const r={id:nextId(),school:'Balhakam Primary',gov:'Al Mandaq',sector:'Sarat',
+    students:draft.ppl,text:draft.text.slice(0,90),v:{...draft.v},score:n,level:L[0],esc:mustEscalate(draft.v),window:L[4],
+    due:now()+L[4]*H,created:now(),status:'Awaiting decision',ai:draft.ai,fresh:true,mine:true};
+  reqs.push(r);
+  log('REQUEST_SUBMITTED','school.balhakam',r.id);
+  log('SCORE_COMPUTED','engine.v2.1',`${r.id} score=${n} level=${L[0]}`);
+  toast(`Request sent — Score ${n}/100 · ${L[0]} · Repair window ${L[4]} hours`);
+  $('sendBtn').style.display='none';$('anBox').style.display='none';draft=null;
+  renderAll();switchTo('v-mine');
+}
+
+/* ========== RENDER ========== */
+const LVL_RANK={Critical:0,High:1,Medium:2,Routine:3};
+/* Critical first, whatever the numeric score: the escalation rule changes the level, so the order must follow the level */
+function ranked(){return openReqs().sort((a,b)=>(LVL_RANK[lvlFor(a)[0]]-LVL_RANK[lvlFor(b)[0]])||(b.score-a.score));}
+/* first come first served, for the comparison the demo opens with */
+function byArrival(){return openReqs().sort((a,b)=>a.created-b.created);}
+let qView='table',qOrder='risk';
+function setQOrder(o){qOrder=o;const t=$('qoT'),d=$('qoD');if(t)t.classList.toggle('on',o==='risk');if(d)d.classList.toggle('on',o==='date');
+  const h=$('qOrderHead');if(h)h.textContent=o==='risk'?'Requests ranked by risk':'Requests in order of arrival, the rule Sawn replaces';renderQueue();}
+function setQView(v){qView=v;renderQueue();}
+function renderQueue(){
+  const o=qOrder==='date'?byArrival():ranked(),b=$('qBody');if(!b)return;
+  const det=$('qDetail'),tbl=b.closest('table');
+  if(det&&tbl){
+    const on=qView==='detail';
+    det.style.display=on?'block':'none';
+    tbl.style.display=on?'none':'';
+    if($('qvT'))$('qvT').classList.toggle('on',!on);
+    if($('qvD'))$('qvD').classList.toggle('on',on);
+    if(on){
+      const list=detailList();
+      det.innerHTML=filterBanner(list.length)+(list.length?list.map(r=>recordCard(r,o)).join('')
+        :'<div style="font-size:12.5px;color:var(--mute)">No requests in this state.</div>');
+    }
+  }
+  const rows=o.filter(r=>matchFilter(r,curFilter()));
+  b.innerHTML=rows.length?rows.map((r,i)=>{
+    const L=lvlFor(r),p=prevOrder.indexOf(r.id),dl=(p>-1&&p!==i)?`<span class="dl ${p>i?'up':'down'}">${p>i?'▲':'▼'}${Math.abs(p-i)}</span>`:'';
+    return `<tr class="click${r.fresh?' fresh':''}" onclick="openReq('${r.id}')">
+      <td class="rk">${dl}${i+1}</td><td>${r.school}</td><td>${r.sector}</td><td>${r.text.slice(0,54)}</td>
+      <td class="sc" style="color:${L[2]}">${r.score}</td>
+      <td><span class="chip ${L[1]}">${L[0]}</span>${r.esc?'<div style="font-size:9.5px;color:var(--danger);margin-top:2px">Mandatory escalation</div>':''}</td>
+      <td class="sla ${slaClass(r)}" data-due="${r.due}">${fmtLeft(r.due-now())}</td>
+      <td style="font-size:11.5px;color:${stageOf(r)==='prog'?'#D08A2A':'var(--mute)'}">${r.status}</td></tr>`;}).join('')
+    :'<tr><td colspan="8" style="text-align:center;color:var(--mute);font-size:12.5px;padding:18px">No requests in this state. Click Total in the strip at the top of the page.</td></tr>';
+  prevOrder=o.map(r=>r.id);
+  const crit=openReqs().filter(r=>lvlFor(r)[0]==='Critical').length,late=openReqs().filter(r=>r.due-now()<=0).length;
+  $('qKpi').innerHTML=`
+   <div class="kpi"><b>991</b><span>schools in the region</span><i>SPA · 1444H</i></div>
+   <div class="kpi crit"><b>${crit}</b><span>critical cases open</span><i>24 hour repair window</i></div>
+   <div class="kpi ai"><b>${openReqs().length}</b><span>requests in the live queue</span><i>reordered immediately</i></div>
+   <div class="kpi ${late?'crit':'ok'}"><b>${late}</b><span>Past the repair window</span><i>escalates to the ministry automatically</i></div>
+   ${(()=>{const f=reqs.filter(r=>r.fb),bad=f.filter(r=>r.fb.v==='Poor').length;
+     return `<div class="kpi ${bad?'crit':'ok'}"><b>${f.length?(f.length-bad)+'/'+f.length:'—'}</b><span>School ratings of the work</span><i>${bad?bad+' poor rating needs an answer':'no poor ratings'}</i></div>`})()}`;
+}
+function stageOf(r){
+  if(r.status.startsWith('Handled'))return 'done';
+  if(r.status.startsWith('Under'))return 'prog';
+  return 'open';
+}
+/* closed work leaves the live triage list but stays in the record */
+const isOpen=r=>stageOf(r)!=='done';
+const openReqs=()=>reqs.filter(isOpen);
+const STAGE={done:['Handled','ok','#178C6C'],prog:['Under way','ai','#D08A2A'],open:['Not handled','crit','#C0392B']};
+function rate(id,v){
+  const r=reqs.find(x=>x.id===id);if(!r)return;
+  const why=($('why-'+id)?$('why-'+id).value.trim():'');
+  if(!why){toast('Give a reason before saving the rating');return;}
+  r.fb={v,why,at:now()};
+  log('SCHOOL_FEEDBACK','school.balhakam',`${r.id} · ${v} · ${why.slice(0,60)}`);
+  renderAll();
+  if($('modal').classList.contains('on'))openReq(r.id);toast(v==='Good'?'Thank you. Your rating is recorded and now shows on the department dashboard':'Rating recorded and the reason referred to the education department');
+}
+function execBlock(r){
+  if(!r.exec)return '<div class="note" style="margin-top:10px">No work order issued yet, so no executing party is on record.</div>';
+  const e=r.exec;
+  const sigLine=x=>x?`<div class="sigrow"><span class="sigok">✓</span><span><b>${x.by}</b> · ${x.role}
+     <span class="mono" style="color:var(--mute)">${x.id}</span><br>
+     <span style="font-size:11.5px;color:var(--mute)">Signed ${fmtWhen(x.at)} · fingerprint <span class="mono" dir="ltr">${x.sig}</span></span></span></div>`:'';
+  return `<div class="vendor">
+     <div class="vname">${e.co}</div>
+     <div class="vhead">${e.head} · ${e.headTitle}</div>
+     <div class="vmeta mono">CR ${e.cr} · contract ${e.contract}</div>
+   </div>
+   <div style="font-size:12.5px;line-height:1.9;margin-top:10px">
+   <div><span style="color:var(--mute)">Accountable supervising engineer:</span> <b>${e.eng}</b> <span class="mono">${e.sce}</span></div>
+   <div><span style="color:var(--mute)">Work order received:</span> ${fmtWhen(e.issuedAt)}${e.doneAt?` · <span style="color:var(--mute)">Handed back:</span> ${fmtWhen(e.doneAt)}`:''}</div>
+   ${e.notes?`<div class="note" style="margin-top:10px"><b style="color:var(--petrol)">Handover notes</b><br>${e.notes}</div>`
+     :'<div class="note" style="margin-top:10px">Work in progress. Handover notes are recorded at closing, and the request cannot be closed without them.</div>'}
+   ${e.sig?`<div class="sigbox"><div class="sigttl">Electronically signed declaration</div>
+      ${sigLine(e.sig.eng)}${sigLine(e.sig.co)}
+      <div class="signote">The fingerprint is computed over the text of the declaration itself. Editing the notes after signing breaks it and the break shows in the audit trail.</div></div>`:''}
+   </div>`;
+}
+function fbBlock(r){
+  if(r.fb)return `<div class="note" style="margin-top:10px">Your rating: <b style="color:${r.fb.v==='Good'?'#178C6C':'#C0392B'}">${r.fb.v}</b> — ${r.fb.why}</div>`;
+  return `<div class="note" style="margin-top:10px" onclick="event.stopPropagation()"><b style="color:var(--petrol)">Rate the quality of the work and the speed</b>
+   <div class="fld" style="margin:8px 0 6px"><textarea id="why-${r.id}" rows="2" placeholder="Give the reason: what was done well, or what was late?"></textarea></div>
+   <div class="rate"><button class="btn sm" onclick="rate('${r.id}','Good')">Good</button>
+   <button class="btn ghost sm" onclick="rate('${r.id}','Poor')">Poor</button></div></div>`;
+}
+let mineFilter='all';
+const FILT={school:'all',admin:'all',ministry:'all'};
+function curFilter(){return FILT[role]||'all';}
+function setFilterKey(f){
+  FILT[role]=(FILT[role]===f)?'all':f;
+  if(role==='school')mineFilter=FILT[role];
+  if(role!=='school'&&FILT[role]!=='all')qView='detail';
+  renderAll();
+  const host=$( role==='school' ? 'mineList' : (qView==='detail'?'qDetail':'qBody') );
+  try{ if(host&&host.scrollIntoView)host.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+}
+const FILTNAME={crit:'Critical cases still open',late:'Requests past the repair window',prog:'Requests under way now',
+  done:'Handled requests',open:'Requests not yet handled',all:'All requests'};
+function filterBanner(count){
+  const f=curFilter();
+  if(f==='all')return '';
+  return `<div class="fbanner"><span><b>${FILTNAME[f]}</b> · ${count} request</span>
+    <button onclick="setFilterKey('${f}')">Clear filter</button></div>`;
+}
+function setMineFilter(f){setFilterKey(f);}
+/* critical and overdue are measured on open work only; closed work cannot be late */
+function matchFilter(r,f){
+  const st=stageOf(r);
+  if(f==='all')return true;
+  if(f==='done')return st==='done';
+  if(f==='prog')return st==='prog';
+  if(f==='open')return st==='open';
+  if(f==='crit')return st!=='done'&&lvlFor(r)[0]==='Critical';
+  if(f==='late')return st!=='done'&&r.due-now()<=0;
+  return true;
+}
+function scopeReqs(){return role==='school'?reqs.filter(r=>r.school==='Balhakam Primary'):reqs.slice();}
+function detailList(){
+  return scopeReqs().filter(r=>matchFilter(r,curFilter())).sort((a,b)=>{
+    const sa=stageOf(a)==='done'?1:0,sb=stageOf(b)==='done'?1:0;
+    return sa-sb||b.score-a.score;});
+}
+function renderHeadStats(){
+  // the strip belongs to the list it filters, not to the chrome above it
+  const head=$('hstats');
+  if(head){ head.className='hstats'; head.innerHTML=''; }
+  const el = role==='school' ? $('mineKpi') : $('queueBar');
+  if(!el)return;
+  const sc=scopeReqs(),c=f=>sc.filter(r=>matchFilter(r,f)).length;
+  let cells;
+  if(role==='school'){
+    const wait=sc.filter(r=>stageOf(r)==='done'&&!r.fb).length;
+    cells=[['done','Handled',c('done'),'#178C6C',wait?'· '+wait+' awaiting your rating':'· all rated'],
+      ['prog','Under way',c('prog'),'#D08A2A',c('prog')?'· work order issued':''],
+      ['open','Not handled',c('open'),'#C0392B',c('open')?'· Awaiting decision':''],
+      ['all','Total',sc.length,'#7FB2B2','']];
+  }else{
+    const unrated=sc.filter(r=>r.fb&&r.fb.v==='Poor').length;
+    cells=[['crit','Critical open',c('crit'),'#C0392B','· window 24 hours'],
+      ['late','Overdue',c('late'),'#8A2B2B','· escalation automatic'],
+      ['prog','Under way',c('prog'),'#D08A2A','· work order issued'],
+      ['done','Handled',c('done'),'#178C6C',unrated?'· '+unrated+' poor rating':'· no complaints'],
+      ['all','Total',sc.length,'#7FB2B2','']];
+  }
+  el.className='statbar';
+  el.innerHTML=cells.map(x=>`<button class="sb" aria-pressed="${curFilter()===x[0]}" onclick="setFilterKey('${x[0]}')"
+    title="${x[1]}${x[4]?' '+x[4]:''}">
+    <span class="sbn" style="color:${x[3]}">${x[2]}</span>
+    <span class="sbl">${x[1]}</span>${x[4]?`<span class="sbx">${x[4].replace(/^·\s*/,'')}</span>`:''}</button>`).join('');
+}
+function indBars(r){
+  return IND.map(i=>{const sev=r.v[i.k],contrib=i.w*sev*10;
+    return `<div class="ind"><span class="nm">${i.n}</span><span class="br"><i style="width:${sev*10}%"></i></span>
+      <span class="vl">${sev}/10 · ${contrib.toFixed(1)}</span></div>`}).join('');
+}
+function recordCard(r,o){
+  const L=lvlFor(r),st=stageOf(r),S=STAGE[st],rank=o.findIndex(x=>x.id===r.id)+1,e=r.exec;
+  const kv=(k,v)=>`<div class="kvi"><span class="kvk">${k}</span><span class="kvv">${v}</span></div>`;
+  return `<div class="recs">
+   <div class="rechd" onclick="openReq('${r.id}')">
+     <span class="chip ${S[1]}">${S[0]}</span>
+     <span class="recttl">${r.text}<div class="recid mono">#${r.id}${role!=='school'?` · ${r.school} · education department ${r.gov} · sector ${r.sector}`:''}</div></span>
+     <span class="chip ${L[1]}">${L[0]} · ${r.score}</span></div>
+
+   <div class="sec"><div class="sech">Request details</div><div class="kv">
+     ${kv('Filed',fmtWhen(r.created))}
+     ${kv('Pupils affected',r.students+' pupils')}
+     ${kv('Risk score',r.score+'/100 · '+L[0])}
+     ${kv('Rank in the live queue',st==='done'?'—':rank+' of '+o.length+' open requests')}
+     ${kv('Repair window set',r.window+' hours · '+L[3])}
+     ${kv('Repair deadline',fmtWhen(r.due))}
+     ${kv(st==='done'?'Time to close':'Time left',
+        st==='done'?Math.max(1,Math.round((r.doneAt-r.created)/H))+' hours from filing'
+        :`<span class="sla ${slaClass(r)}" data-due="${r.due}">${fmtLeft(r.due-now())}</span>`)}
+     ${kv('Mandatory escalation',r.esc?'Yes, triggered by the safety rule':'No')}
+     ${kv('Recorded status',r.status)}
+   </div></div>
+
+   <div class="sec"><div class="sech">The eight indicators and what each contributed</div>${indBars(r)}</div>
+
+   <div class="sec"><div class="sech">Governing instruments</div>
+     ${(()=>{const P=policyFor(r);
+       return (P.hits.length?P.hits.map(h=>`<span class="chip c-ai" style="margin:0 0 5px 5px">${h.doc.code}</span>`).join('')
+         :'<span style="font-size:12.5px;color:var(--mute)">No governing instrument — recorded as a gap</span>')
+       +(P.deadline?'':'<div style="font-size:11.5px;color:#8A6508;margin-top:5px">No instrument sets a maximum repair time for this level</div>')})()}
+   </div>
+
+   <div class="sec"><div class="sech">Executing party and accountability</div>
+     ${e?`<div class="kv">
+        ${kv('Executing company',e.co)}
+        ${kv('Company head / signatory',e.head+' · '+e.headTitle)}
+        ${kv('Commercial registration','<span class="mono">'+e.cr+'</span>')}
+        ${kv('Contract number','<span class="mono">'+e.contract+'</span>')}
+        ${kv('Supervising engineer',e.eng)}
+        ${kv('Council membership','<span class="mono">'+e.sce+'</span>')}
+        ${kv('Work order received',fmtWhen(e.issuedAt))}
+        ${kv('Handed back',e.doneAt?fmtWhen(e.doneAt):'not handed back yet')}
+      </div>
+      ${e.notes?`<div class="note" style="margin-top:9px"><b style="color:var(--petrol)">Handover notes</b><br>${e.notes}</div>`:''}
+      ${e.sig?`<div class="sigbox"><div class="sigttl">Electronically signed declaration</div>
+        ${[e.sig.eng,e.sig.co].filter(Boolean).map(x=>`<div class="sigrow"><span class="sigok">✓</span>
+          <span><b>${x.by}</b> · ${x.role} <span class="mono" style="color:var(--mute)">${x.id}</span><br>
+          <span style="font-size:11.5px;color:var(--mute)">Signed ${fmtWhen(x.at)} · fingerprint <span class="mono" dir="ltr">${x.sig}</span></span></span></div>`).join('')}
+        </div>`:''}`
+      :'<div style="font-size:12.5px;color:var(--mute)">No work order issued yet, so no executing party is on record.</div>'}
+   </div>
+
+   ${r.ai?`<div class="sec"><div class="sech">Engine explanation</div>
+     <div style="font-size:12.5px;line-height:1.8">${r.ai.why}</div></div>`:''}
+
+   ${st==='done'?`<div class="sec"><div class="sech">School rating</div>${fbBlock(r)}</div>`:''}
+   </div>`;
+}
+function renderMine(){
+  const mine=reqs.filter(r=>r.school==='Balhakam Primary'),o=ranked();
+  const el=$('mineList');if(!el)return;
+  const shown=detailList();
+  el.innerHTML=filterBanner(shown.length)+(shown.length?shown.map(r=>recordCard(r,o)).join('')
+    :`<div style="font-size:12.5px;color:var(--mute)">${mine.length?'No requests in this state.':'No requests yet. File one from the first tab.'}</div>`);
+  $('mineKpi').innerHTML='';
+}
+let mapAt={t:'nat'};
+function goMap(t,n){mapAt={t,n};renderMinistry();try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){}
+  if(typeof pushNav==='function')pushNav();}
+function mapBack(){ goBack(); }
+const avgOf=a=>a.length?Math.round(a.reduce((x,r)=>x+r.score,0)/a.length):0;
+function renderMinistry(){
+  const body=$('mBody');if(!body)return;
+  const bahaAvg=avgOf(openReqs()),crit=openReqs().filter(r=>lvlFor(r)[0]==='Critical');
+  /* breadcrumb */
+  const cr=[`<button onclick="goMap('nat')">the Kingdom</button>`];
+  if(mapAt.t!=='nat')cr.push(`<button onclick="goMap('reg','Al Baha')">Al Baha region</button>`);
+  if(mapAt.t==='off')cr.push(`<span>education department ${mapAt.n}</span>`);
+  // one level up, which is what people reach for before they read a breadcrumb
+  $('crumb').innerHTML = cr.join('<i>›</i>');
+
+  if(mapAt.t==='nat'){
+    $('mKpi').innerHTML=`<div class="kpi"><b>~24,000</b><span>public schools in scope</span><i>13 education regions</i></div>
+     <div class="kpi ok"><b>991</b><span>schools live today</span><i>Al Baha region — the calibration scope</i></div>
+     <div class="kpi crit"><b>${crit.length}</b><span>critical cases open now</span><i>a 24 hour window for each</i></div>
+     <div class="kpi ai"><b>${aiCalls?Math.round(aiMs/aiCalls)+' ms':'ready'}</b><span>Mean engine analysis time</span><i>${aiCalls?'against days by hand':'appears after the first analysis'}</i></div>`;
+    body.innerHTML=`<div class="panel"><h4>Education regions. Open any region to reach its departments and schools</h4>
+      <div class="sub">Shading shows mean risk rather than request volume · currently live: Al Baha only</div>
+      <div class="hgrid">${REGIONS.map(([n,v])=>{
+        const live=n==='Al Baha',val=live?bahaAvg:v;
+        return `<div class="hc${live?' me act':' idle'}" ${live?`onclick="goMap('reg','Al Baha')"`:''} style="background:${live?col(val):'#8695971a'};${live?'':'color:#5D7479;border:1px dashed var(--line)'}">
+          <b>${n}</b><span>${live?'mean '+val+'/100':'rolling out'}</span>
+          ${live?`<span style="opacity:.8;font-size:10px">${openReqs().length} live requests · open for detail</span>`:'<span style="font-size:10px;opacity:.7">first wave</span>'}</div>`}).join('')}</div>
+      <div class="note" style="margin-top:12px">No figures are shown for regions that are not live yet. The platform is national by design and rolls out in waves, because calibrating the models needs real data gathered gradually.</div></div>
+      ${topTable('Highest critical cases across the platform',ranked().slice(0,8))}`;
+  }
+  else if(mapAt.t==='reg'){
+    const byOff={};reqs.forEach(r=>{(byOff[r.gov]=byOff[r.gov]||[]).push(r)});
+    $('mKpi').innerHTML=`<div class="kpi"><b>991</b><span>schools in the Al Baha region</span><i>SPA · 1444H</i></div>
+     <div class="kpi"><b>85,000+</b><span>pupils</span><i>Al Baha regional education department</i></div>
+     <div class="kpi crit"><b>${crit.length}</b><span>critical cases open</span></div>
+     <div class="kpi ok"><b>${bahaAvg}</b><span>Mean risk score in the region</span></div>`;
+    body.innerHTML=`<div class="panel"><h4>Departments in this region. Open any department to list its schools</h4>
+      <div class="sub">Sarat sector: rain and damp lead to leaks and cracking · Tihamah sector: heat leads to cooling failures and electrical load</div>
+      <div class="hgrid">${OFFICES.map(([n,sec])=>{
+        const a=byOff[n]||[],v=avgOf(a),c=a.filter(r=>lvlFor(r)[0]==='Critical').length;
+        return `<div class="hc act" onclick="goMap('off','${n}')" style="background:${a.length?col(v):'#6B8085'}">
+          <b>department ${n}</b><span>${a.length?'mean '+v+'/100':'no open requests'}</span>
+          <span style="font-size:10px;opacity:.85">sector ${sec} · ${a.length} request${c?` · ${c} Critical`:''}</span></div>`}).join('')}</div></div>
+      ${topTable('Highest cases in the region',ranked().slice(0,8))}`;
+  }
+  else{
+    const a=ranked().filter(r=>r.gov===mapAt.n),c=a.filter(r=>lvlFor(r)[0]==='Critical');
+    const sec=(OFFICES.find(o=>o[0]===mapAt.n)||['','Sarat'])[1];
+    $('mKpi').innerHTML=`<div class="kpi"><b>${a.length}</b><span>open requests in the department</span></div>
+     <div class="kpi crit"><b>${c.length}</b><span>critical case</span></div>
+     <div class="kpi ok"><b>${avgOf(a)}</b><span>Mean risk score</span></div>
+     <div class="kpi"><b>${sec}</b><span>Climate sector</span><i>${sec==='Sarat'?'leak and crack risk':'cooling and load risk'}</i></div>`;
+    body.innerHTML=topTable(`schools education department ${mapAt.n} — Open any school to see its request`,a,true);
+  }
+}
+function topTable(title,rows,clickable){
+  return `<div class="panel"><h4>${title}</h4>
+   <div class="sub">Sourced from the departments’ own queues, with no re-keying and no delay</div>
+   <table><thead><tr><th style="width:44px">#</th><th>School</th><th style="width:88px">Sector</th><th>Fault</th>
+     <th style="width:62px">Score</th><th style="width:78px">Level</th><th style="width:104px">Repair window</th></tr></thead>
+   <tbody>${(rows=rows.filter(r=>matchFilter(r,curFilter()))).length?rows.map((r,i)=>{const L=lvlFor(r);
+     return `<tr class="click" onclick="openReq('${r.id}')"><td class="rk">${i+1}</td><td>${r.school}</td><td>${r.sector}</td>
+     <td>${r.text.slice(0,46)}</td><td class="sc" style="color:${L[2]}">${r.score}</td>
+     <td><span class="chip ${L[1]}">${L[0]}</span></td>
+     <td class="sla ${slaClass(r)}" data-due="${r.due}">${fmtLeft(r.due-now())}</td></tr>`}).join('')
+   :'<tr><td colspan="7" style="text-align:center;color:var(--mute);font-size:12.5px">No open requests in this scope right now.</td></tr>'}</tbody></table></div>`;
+}
+
+/* ============ GOVERNANCE ============ */
+function fairness(){
+  const A=r=>r.status.startsWith('Handled');
+  const grp=(f)=>{const a=reqs.filter(f);return{n:a.length,avg:avgOf(a),ap:a.length?Math.round(a.filter(A).length/a.length*100):0}};
+  return{small:grp(r=>r.students<300),big:grp(r=>r.students>=300),
+    sarat:grp(r=>r.sector==='Sarat'),tihamah:grp(r=>r.sector==='Tihamah')};
+}
+/* ===== sandbox (ITU-T Y.3181): a weight change is tested against the live requests before anyone can propose it ===== */
+let SBW=null,SBRES=null;
+function sbWeights(){ if(!SBW){SBW={};IND.forEach(i=>SBW[i.k]=Math.round(i.w*100));} return SBW; }
+function sbSet(k,v){ sbWeights()[k]=+v; const e=$('sbv_'+k); if(e)e.textContent=v+'%'; const t=$('sbTot'); if(t){const tot=Object.values(SBW).reduce((a,x)=>a+x,0);t.textContent=tot+'%';t.style.color=tot===100?'var(--petrol)':'var(--danger)';} }
+function sbReset(){ SBW=null;SBRES=null;renderGov(); }
+function sbRun(){
+  const W=sbWeights(),tot=Object.values(W).reduce((a,x)=>a+x,0)||100;
+  const burdenW=v=>IND.reduce((a,i)=>a+(W[i.k]/tot)*(v[i.k]||0)*10,0);
+  const scoreW=v=>Math.round(.4*burdenW(v)+.6*peakOf(v));
+  const live=ranked();
+  const sb=openReqs().map(r=>{const sc=scoreW(r.v);const L=mustEscalate(r.v)?lvlOf(Math.max(sc,75)):lvlOf(sc);return {r,sc,L};})
+    .sort((a,b)=>(LVL_RANK[a.L[0]]-LVL_RANK[b.L[0]])||(b.sc-a.sc));
+  const avg=(xs,f)=>xs.length?Math.round(xs.reduce((a,x)=>a+f(x),0)/xs.length):0;
+  const smallLive=avg(live.filter(r=>r.students<300),r=>r.score),bigLive=avg(live.filter(r=>r.students>=300),r=>r.score);
+  const smallSb=avg(sb.filter(x=>x.r.students<300),x=>x.sc),bigSb=avg(sb.filter(x=>x.r.students>=300),x=>x.sc);
+  SBRES={rows:sb.map((x,i)=>({school:x.r.school,text:x.r.text,liveRank:live.findIndex(r=>r.id===x.r.id)+1,liveScore:x.r.score,liveLvl:lvlFor(x.r)[0],sbRank:i+1,sbScore:x.sc,sbLvl:x.L[0]})),
+    gapLive:Math.abs(smallLive-bigLive),gapSb:Math.abs(smallSb-bigSb),weights:{...W},tot,at:now()};
+  log('SANDBOX_RUN','sandbox.y3181',`weights ${IND.map(i=>i.k+'='+W[i.k]).join(' ')} · nothing applied`);
+  renderGov();
+}
+function sbPanel(){
+  const W=sbWeights(),tot=Object.values(W).reduce((a,x)=>a+x,0);
+  const sliders=IND.map(i=>`<div class="ind"><label for="sb_${i.k}"><span>${i.n}</span><span id="sbv_${i.k}">${W[i.k]}%</span></label>
+     <input type="range" id="sb_${i.k}" min="0" max="40" value="${W[i.k]}" oninput="sbSet('${i.k}',this.value)" aria-label="${i.n}"></div>`).join('');
+  let res='';
+  if(SBRES){
+    const moved=SBRES.rows.filter(x=>x.liveRank!==x.sbRank).length;
+    res=`<div class="kpirow" style="margin-top:12px">
+      <div class="kpi"><b>${moved}</b><span>requests that change position</span><i>of ${SBRES.rows.length} open</i></div>
+      <div class="kpi ${SBRES.gapSb<=12?'ok':'crit'}"><b>${SBRES.gapLive} → ${SBRES.gapSb}</b><span>small versus large school gap</span><i>live → sandbox (limit 12)</i></div>
+      <div class="kpi ai"><b>${SBRES.rows.filter(x=>x.sbLvl==='Critical').length}</b><span>critical under the tested weights</span><i>live: ${SBRES.rows.filter(x=>x.liveLvl==='Critical').length}</i></div></div>
+     <table style="margin-top:10px"><thead><tr><th style="width:44px">Live</th><th style="width:60px">Sandbox</th><th>School</th><th>Fault</th><th style="width:90px">Score</th><th style="width:110px">Level</th></tr></thead><tbody>
+     ${SBRES.rows.map(x=>{const d=x.liveRank-x.sbRank;return `<tr><td class="rk">${x.liveRank}</td><td class="rk">${x.sbRank}${d?`<span class="dl ${d>0?'up':'down'}">${d>0?'▲':'▼'}${Math.abs(d)}</span>`:''}</td>
+        <td>${x.school}</td><td>${x.text.slice(0,48)}</td><td class="sc">${x.liveScore} → ${x.sbScore}</td><td>${x.liveLvl===x.sbLvl?x.sbLvl:x.liveLvl+' → '+x.sbLvl}</td></tr>`}).join('')}</tbody></table>
+     <div class="note" style="margin-top:10px">Nothing above has been applied. A weight change reaches production only as a versioned decision of the governance committee, with this table attached, and the superseded ranking is kept.</div>`;
+  }
+  return `<div class="panel"><h4>Sandbox: test a weight change before it reaches anyone (ITU-T Y.3181)</h4>
+    <div class="sub">The counterfactual ranking is computed over the live open requests. The live weights are not touched.</div>
+    ${sliders}
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--mute)">Total <b id="sbTot" style="color:${tot===100?'var(--petrol)':'var(--danger)'}">${tot}%</b> (normalised to 100 when run)</span>
+      <button class="btn sm" onclick="sbRun()">Run counterfactual</button>
+      <button class="btn ghost sm" onclick="sbReset()">Reset to live weights</button></div>
+    ${res}</div>`;
+}
+function renderGov(){
+  const b=$('govBody');if(!b)return;
+  const f=fairness(),gap=Math.abs(f.small.avg-f.big.avg),sgap=Math.abs(f.sarat.avg-f.tihamah.avg);
+  const ov=AUDIT.filter(e=>e.act==='HUMAN_OVERRIDE'),dec=AUDIT.filter(e=>e.act==='DECISION_APPROVED');
+  const rate=dec.length+ov.length?Math.round(ov.length/(dec.length+ov.length)*100):0;
+  b.innerHTML=`
+  <div class="kpirow">
+    <div class="kpi ${gap<=12?'ok':'crit'}"><b>${gap}</b><span>mean gap: small versus large schools</span><i>${gap<=12?'within the allowed limit (≤12)':'over the limit, escalated to the committee'}</i></div>
+    <div class="kpi ${sgap<=12?'ok':'crit'}"><b>${sgap}</b><span>mean gap: Sarat versus Tihamah</span><i>${sgap<=12?'No bias toward the sector':'review the sector context'}</i></div>
+    <div class="kpi ai"><b>${rate}%</b><span>human override rate</span><i>a high rate points to a calibration fault</i></div>
+    <div class="kpi"><b>v2.1</b><span>Risk model version</span><i>any change requires a committee decision</i></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel"><h4>Who may change the weights?</h4>
+      <div class="sub">The weights are public policy, not a technical setting, and cannot be edited from inside the platform</div>
+      ${IND.map(i=>`<div class="crow"><span>${i.n}</span><span class="cb"><i style="width:${i.w*500}%"></i></span>
+        <span class="cv">${Math.round(i.w*100)}%</span></div>`).join('')}
+      <div class="note" style="margin-top:12px"><b style="color:var(--petrol)">Mandatory escalation rule</b><br>
+        An immediate threat to safety (structural element ≥ 8 or electrical and fire ≥ 8) raises the level to Critical regardless of the numeric score,
+        as in emergency triage: a single danger signal is enough and an average must not dilute it.
+        The score itself is 40 per cent weighted burden across the eight indicators plus 60 per cent peak life-safety hazard.</div>
+      <div class="note" style="margin-top:8px">Authorised body: the model governance committee at the Ministry of Education · Periodic review: every six months ·
+        every change is written to the audit trail as a new version and is not applied retroactively.</div></div>
+
+    <div class="panel"><h4>Is the model fair?</h4>
+      <div class="sub">Computed live from open requests. Absence of bias is measured, not assumed</div>
+      <table><thead><tr><th>Band</th><th style="width:58px">Requests</th><th style="width:70px">Mean risk</th><th style="width:76px">approval rate</th></tr></thead>
+      <tbody>
+        <tr><td>Small schools (under 300 pupils)</td><td class="sc">${f.small.n}</td><td class="sc">${f.small.avg}</td><td class="sc">${f.small.ap}%</td></tr>
+        <tr><td>Large schools (300 and over)</td><td class="sc">${f.big.n}</td><td class="sc">${f.big.avg}</td><td class="sc">${f.big.ap}%</td></tr>
+        <tr><td>Sarat sector</td><td class="sc">${f.sarat.n}</td><td class="sc">${f.sarat.avg}</td><td class="sc">${f.sarat.ap}%</td></tr>
+        <tr><td>Tihamah sector</td><td class="sc">${f.tihamah.n}</td><td class="sc">${f.tihamah.avg}</td><td class="sc">${f.tihamah.ap}%</td></tr>
+      </tbody></table>
+      <div class="note" style="margin-top:12px">The weight on People affected is held at 10 per cent so that sheer volume cannot swallow real danger:
+        a school of 150 pupils in Al Mandaq must come before a school of 900 if its risk is greater. The gap above is what proves or disproves it.</div></div>
+  </div>
+
+  ${sbPanel()}
+
+  <div class="grid2">
+    <div class="panel"><h4>Human override: when did an official depart from the engine?</h4>
+      <div class="sub">Overriding is legitimate, but it must be justified, recorded, and fed back to the model as a calibration signal</div>
+      ${ov.length?ov.slice(0,5).map(e=>`<div class="ent e-dec"><div class="etop"><span class="ename">human override</span>
+        <span class="etime">${fmtClock(e.t)}</span></div>
+        <div class="emeta"><span><b>Actor:</b> ${actorAr(e.actor)}</span><span><b>Reference:</b> <span class="ref">${e.ref}</span></span></div></div>`).join('')
+        :'<div style="font-size:12.5px;color:var(--mute)">No human override in this session. Every decision matched the engine’s order.</div>'}
+      <div class="note" style="margin-top:10px">If overrides exceed 20% for a full quarter, that points to a fault in the weights rather than to officials making mistakes, and the model goes to review.</div></div>
+
+    <div class="panel"><h4>Under what controls does the platform run?</h4><div class="sub">Frameworks actually applied in the design, not cited as a badge</div>
+      <table><thead><tr><th style="width:110px">Reference</th><th>How it appears in Sawn</th></tr></thead><tbody>
+        <tr><td><b>NCA ECC-2:2024</b></td><td>Separation of authority sourced from the HR record · stronger verification for high-impact actions · event log protected from editing</td></tr>
+        <tr><td><b>ISO/IEC 27001</b></td><td>Data classification, access control and incident response</td></tr>
+        <tr><td><b>ISO 31000</b></td><td>Risk method: severity times exposure, with periodic review of the criteria</td></tr>
+        <tr><td><b>ITU-T Y.3172</b></td><td>Separation of the data, model, orchestration and delivery layers</td></tr>
+      </tbody></table>
+      <div class="note" style="margin-top:12px">Governance here is not a chapter in a document. Every item above has a visible effect in the platform: authority read from the HR record, the append-only log, school feedback, and this screen itself.</div></div>
+  </div>`;
+}
+function renderAuditKpi(){
+  const el=$('aKpi');if(!el)return;
+  const dec=AUDIT.filter(e=>(EV[e.act]?.[1])==='dec').length;
+  el.innerHTML=`<div class="kpi ok"><b>within limits</b><span>hash chain intact</span><i>no link between entries is broken</i></div>
+   <div class="kpi"><b>${AUDIT.length}</b><span>entries this session</span><i>cannot be deleted or edited</i></div>
+   <div class="kpi ai"><b>${aiCalls}</b><span>model inference recorded</span><i>every automated decision can be reviewed later</i></div>
+   <div class="kpi crit"><b>${dec}</b><span>documented human decision</span><i>with the official’s name and reason</i></div>`;
+}
+function renderAll(){try{renderPolicy()}catch(e){}try{renderHeadStats()}catch(e){}renderQueue();renderMine();renderMinistry();renderGov();renderAuditKpi();renderInbox();}
+
+/* ========== DETAIL MODAL ========== */
+function openReq(id){
+  const r=reqs.find(x=>x.id===id);if(!r)return;
+  const L=lvlFor(r);
+  if(role==='school'){openSchoolReq(r,L);return;}
+  const parts=IND.map(i=>({n:i.n,v:i.w*r.v[i.k]*10})).sort((a,b)=>b.v-a.v),mx=parts[0].v||1;
+  $('mbox').innerHTML=`<button class="mback" onclick="closeModal()">‹ Back</button><button class="x" onclick="closeModal()">✕</button>
+   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+     <div><h1 style="font-size:20px;color:var(--petrol)">${r.school}</h1>
+     <div style="font-size:12px;color:var(--mute)" class="mono">#${r.id}</div>
+     <div style="font-size:12.5px;color:var(--mute)">education department ${r.gov} · sector ${r.sector} · ${r.students} pupils</div></div>
+     <span class="chip ${L[1]}" style="font-size:12px;padding:6px 13px">${L[0]} · ${r.score}/100</span></div>
+   <div class="panel"><p style="font-size:13.5px;color:#31474B;border-inline-start:3px solid var(--line);padding-inline-start:12px">"${r.text}"</p>
+     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12.5px">
+       <span>Time left in the repair window: <b class="sla ${slaClass(r)}" data-due="${r.due}">${fmtLeft(r.due-now())}</b></span>
+       <span>Recommended action: <b>${L[3]}</b></span></div></div>
+   <div class="grid2">
+     <div class="panel"><h4>Score breakdown</h4><div class="sub">each indicator’s contribution to ${r.score}/100</div>
+       ${parts.map(p=>`<div class="crow"><span>${p.n}</span><span class="cb"><i style="width:${p.v/mx*100}%"></i></span><span class="cv">${p.v.toFixed(1)}</span></div>`).join('')}
+       <div class="aibox" id="expBox" style="margin-top:14px"><div class="h"><span class="sp"></span><span>Engine explanation</span></div>
+       <p id="expTxt">${r.ai?.why||'Press Generate explanation and the engine will write an accountable explanation.'}</p></div>
+       <button class="btn ghost sm" style="margin-top:10px" onclick="explain('${r.id}')">Generate explanation with AI</button></div>
+     <div class="panel"><h4>Chain of custody</h4><div class="sub">Who holds the order now, and what the last team handed over</div>
+       ${execBlock(r)}</div>
+     <div class="panel"><h4>Governing instruments</h4><div class="sub">Retrieved from the knowledge base at decision time, not recalled by the model</div>
+       ${(()=>{const P=policyFor(r);
+         return (P.hits.length?P.hits.map(clauseCard).join('')
+           :'<div class="gapbox"><b>No instrument governs this fault.</b> The case is written to the gap register rather than settled silently.</div>')
+         + (P.deadline?'':'<div class="gapbox"><b>Gap: no instrument sets a maximum repair time.</b> The repair window shown is a platform policy and no published instrument backs it. Proposal: a binding schedule of repair windows issued by the ministry.</div>')})()}
+     </div>
+     <div class="panel"><h4>Decision</h4><div class="sub">Authority: ${role==='ministry'?'Ministry of Education':'Maintenance directorate — Al Baha'} · sourced from the ministry HR record</div>
+       <div id="decBox">
+       <div class="fld"><label>Action</label><select id="mAct">
+         <option>${L[3]}</option><option>Raise priority — human override</option><option>Lower priority — human override</option></select></div>
+       <div class="fld"><label>Reason for the decision</label><textarea id="mNote" rows="3">Matches the engine’s recommendation.</textarea></div>
+       ${stageOf(r)==='open'
+         ? `<div class="fld"><label>Executing company</label><select id="mVendor">${VENDORS.map((v,i)=>`<option value="${i}">${v[0]} · CR ${v[1]} · ${v[2]}</option>`).join('')}</select></div>
+            <div class="fld"><label>Accountable supervising engineer</label><select id="mEng">${ENGS.map((e,i)=>`<option value="${i}">${e[0]} · ${e[1]}</option>`).join('')}</select></div>
+            <button class="btn" onclick="approve('${r.id}','prog')">Approve and issue work order</button>`
+         : `<div class="note" style="margin-bottom:10px">Work order issued to <b>${r.exec?r.exec.co:'—'}</b> supervised by <b>${r.exec?r.exec.eng:'—'}</b>.</div>
+            <div class="fld"><label>Handover notes: what was done, what was left, and what the next team needs to know</label>
+              <textarea id="mHand" rows="4" placeholder="e.g. Replaced the unit entirely. The adjacent sensor gives a false alarm in damp conditions and needs watching. The old loop cable was not replaced."></textarea></div>
+            <div class="note" style="margin-bottom:10px"><b style="color:var(--petrol)">Electronically signed declaration</b><br>
+              By signing, <b>${r.exec?r.exec.eng:'Supervising engineer'}</b> declares the work was completed as stated above, and the system computes fingerprint over the declaration text, so it cannot be edited after signing without breaking the fingerprint.
+              ${lvlFor(r)[0]==='Critical'?`<br><b style="color:var(--danger)">Safety critical:</b> A second signature is required from <b>${r.exec?r.exec.head:'Authorised signatory'}</b> on behalf of the company.`:''}</div>
+            <label style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin-bottom:10px">
+              <input type="checkbox" id="mSigEng" style="margin-top:3px"> I sign as Supervising engineer · ${r.exec?r.exec.sce:''}</label>
+            ${lvlFor(r)[0]==='Critical'?`<label style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin-bottom:10px">
+              <input type="checkbox" id="mSigCo" style="margin-top:3px"> Signed by the authorised signatory of the company · ${r.exec?r.exec.head:''}</label>`:''}
+            <button class="btn" onclick="approve('${r.id}','done')">Sign and confirm completion</button>`}
+       <div class="note" style="margin-top:10px">The decision is written immediately to an append-only audit chain with the user’s name, their authority and the reason. Any override of the proposed rank appears in the governance report.</div>
+       </div></div></div>`;
+  $('modal').classList.add('on');
+  if(typeof pushNav==='function')pushNav();
+}
+function openSchoolReq(r,L){
+  const st=stageOf(r),S=STAGE[st],o=ranked(),rank=o.findIndex(x=>x.id===r.id)+1;
+  const parts=IND.map(i=>({n:i.n,v:i.w*r.v[i.k]*10})).sort((a,b)=>b.v-a.v),mx=parts[0].v||1;
+  const P=policyFor(r);
+  const steps=[['Request filed',fmtWhen(r.created),true],
+    ['Automatic triage, risk score '+r.score+'/100',fmtWhen(r.created+2*60*1000),true],
+    ['Department approval',st==='open'?'awaiting decision':'Done',st!=='open'],
+    ['Work completed',st==='done'?fmtWhen(r.doneAt):'—',st==='done']];
+  $('mbox').innerHTML=`<button class="mback" onclick="closeModal()">‹ Back</button><button class="x" onclick="closeModal()">✕</button>
+   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+     <div><h1 style="font-size:19px;color:var(--petrol)">${r.text}</h1>
+     <div style="font-size:12px;color:var(--mute)" class="mono">#${r.id}</div>
+     <div style="font-size:12.5px;color:var(--mute)">${r.school} · education department ${r.gov} · ${r.students} pupils</div></div>
+     <span class="chip ${L[1]}" style="font-size:12px;padding:6px 13px">${L[0]} · ${r.score}/100</span></div>
+
+   <div class="panel"><div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;align-items:center">
+     <span class="chip ${S[1]}">${S[0]}</span>
+     ${st==='done'?`<span>Closed after <b>${Math.max(1,Math.round((r.doneAt-r.created)/H))} hours</b></span>`
+       :`<span>Rank in the live queue: <b style="color:var(--petrol)">${rank} of ${openReqs().length}</b></span>
+         <span>Time left in the repair window: <b class="sla ${slaClass(r)}" data-due="${r.due}">${fmtLeft(r.due-now())}</b></span>`}
+     <span>Recommended action: <b>${L[3]}</b></span></div></div>
+
+   <div class="grid2">
+     <div class="panel"><h4>Request timeline</h4><div class="sub">What happened and when, without a phone call</div>
+       ${steps.map(x=>`<div class="crow"><span style="color:${x[2]?'var(--petrol)':'var(--mute)'}">${x[2]?'●':'○'} ${x[0]}</span>
+         <span class="cv" style="font-size:11.5px;color:var(--mute)">${x[1]}</span></div>`).join('')}
+       <h4 style="margin-top:16px">Why this rank</h4><div class="sub">each indicator’s contribution to ${r.score}/100</div>
+       ${parts.slice(0,5).map(p=>`<div class="crow"><span>${p.n}</span><span class="cb"><i style="width:${p.v/mx*100}%"></i></span><span class="cv">${p.v.toFixed(1)}</span></div>`).join('')}
+       ${r.ai?`<div class="aibox" style="margin-top:12px"><div class="h"><span class="sp"></span><span>Engine explanation</span></div><p>${r.ai.why}</p></div>`:''}</div>
+
+     <div class="panel"><h4>Chain of custody</h4><div class="sub">Who holds the order now, and what the last team handed over</div>
+       ${execBlock(r)}</div>
+     <div class="panel"><h4>Governing instruments</h4><div class="sub">The instruments your ranking rests on</div>
+       ${P.hits.length?P.hits.map(clauseCard).join('')
+         :'<div class="gapbox"><b>No instrument governs this fault.</b> The case is written to the policy gap register.</div>'}
+       ${P.deadline?'':'<div class="gapbox"><b>No instrument sets a maximum repair time.</b> The window shown is a platform policy.</div>'}
+       ${st==='done'?fbBlock(r):'<div class="note" style="margin-top:10px">Rating opens once the work is complete.</div>'}</div>
+   </div>
+   <div class="panel"><h4>Who did the work and who answers for it</h4>
+     <div class="sub">The company and the supervising engineer are recorded by name and by registration number, so accountability is still legible years later</div>
+     ${execBlock(r)}</div>`;
+  $('modal').classList.add('on');
+  if(typeof pushNav==='function')pushNav();
+}
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const p2=v=>String(v).padStart(2,'0');
+function fmtWhen(t){const d=new Date(t);return d.getDate()+' '+MON[d.getMonth()]+' · '+p2(d.getHours())+':'+p2(d.getMinutes());}
+function fmtClock(t){const d=new Date(t);return p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());}
+function fmtDay(t){const d=new Date(t);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}
+function closeModal(){$('modal').classList.remove('on');
+  if(NAV.length&&NAV[NAV.length-1].modal)NAV.pop();
+  if(typeof renderBack==='function')renderBack();}
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'||(e.key==='ArrowLeft'&&(e.altKey||e.metaKey))){
+    e.preventDefault(); goBack();
+  }
+});
+async function explain(id){
+  const r=reqs.find(x=>x.id===id);if(!r)return;
+  $('expBox').classList.add('load');$('expTxt').textContent='The engine is drafting the explanation';
+  const parts=IND.map(i=>`${i.n}: severity ${r.v[i.k]}/10 with weight ${Math.round(i.w*100)}% = ${(i.w*r.v[i.k]*10).toFixed(1)}`).join(', ');
+  const sys='You are the explanation engine inside the Sawn platform. Write a short English explanation (3 sentences) telling a maintenance official why this school ranked where it did, naming the two strongest contributing indicators, and closing with the recommended action. No lists, no headings.';
+  const usr=`School: ${r.school} — education department ${r.gov}, sector ${r.sector}, ${r.students} pupils.\nFault: ${r.text}\nScore: ${r.score}/100 (${r.level}).\ncontributions: ${parts}`;
+  try{const x=await llm(sys,usr,500);$('expTxt').textContent=x.txt.trim();r.ai={...(r.ai||{}),why:x.txt.trim()};
+    log('EXPLANATION_GENERATED','engine.lm',`${r.id} · ${x.ms}ms`);}
+  catch(e){$('expTxt').textContent=`${r.school} ranked where it did with a score of ${r.score}/100 because "${IND.map(i=>({n:i.n,v:i.w*r.v[i.k]})).sort((a,b)=>b.v-a.v)[0].n}" made the largest contribution to the score, placing it at level ${lvlFor(r)[0]}. Recommended action: ${lvlFor(r)[3]}.`;}
+  $('expBox').classList.remove('load');renderAll();
+}
+function approve(id,to){
+  const r=reqs.find(x=>x.id===id);if(!r)return;
+  const act=$('mAct').value,ov=act.includes('override');
+  if(to==='prog'){
+    const vi=+($('mVendor')?$('mVendor').value:0),ei=+($('mEng')?$('mEng').value:0);
+    r.exec=mkExec(vi,ei,now(),'');
+    r.status=ov?'Under way (override)':'Under way';
+    log('WORK_ORDER_ISSUED','procurement.etimad',`${r.id} · ${r.exec.co} · CR ${r.exec.cr} · ${r.exec.contract} · supervised by ${r.exec.eng} (${r.exec.sce})`);
+  }else{
+    const hand=$('mHand')?$('mHand').value.trim():'';
+    if(!hand){toast('Write the handover notes before closing. They are the reference for whoever comes next');return;}
+    if(!r.exec)r.exec=mkExec(0,0,r.created,'');
+    const needCo=lvlFor(r)[0]==='Critical';
+    if($('mSigEng')&&!$('mSigEng').checked){toast('The supervising engineer’s electronic signature is required to close the request');return;}
+    if(needCo&&$('mSigCo')&&!$('mSigCo').checked){toast('Safety critical: the company signatory must sign as well');return;}
+    r.exec.notes=hand;r.exec.doneAt=now();
+    r.exec.sig={eng:sign(r,r.exec.eng,'Supervising engineer',r.exec.sce),
+      co:needCo?sign(r,r.exec.head,r.exec.headTitle,'CR '+r.exec.cr):null};
+    log('SIGNATURE_AFFIXED','field.'+r.exec.sce,`${r.id} · ${r.exec.eng} · fingerprint ${r.exec.sig.eng.sig}`+(needCo?` · and signature of ${r.exec.head} · fingerprint ${r.exec.sig.co.sig}`:''));
+    r.status=ov?'Handled (override)':'Handled';
+    r.doneAt=now();
+    log('HANDOVER_RECORDED','field.'+r.exec.sce,`${r.id} · ${r.exec.co} · ${hand.slice(0,80)}`);
+  }
+  log(ov?'HUMAN_OVERRIDE':'DECISION_APPROVED',role==='ministry'?'ministry.decision':'office.'+r.gov,`${r.id} · ${act} · ${r.status}`);
+  log('SCHOOL_NOTIFIED','notify.svc',r.school);
+  closeModal();renderAll();
+  toast(to==='prog'?'Work order issued, request moved to Under way, school notified'
+    :'Completion recorded, decision written to the audit chain, school notified');
+}
+
+/* ========== ADMIN → MINISTRY REPORT ========== */
+let draftReport=null;
+async function genReport(){
+  $('repBox').style.display='block';$('repBox').classList.add('load');$('repBtn').disabled=true;
+  $('repTxt').textContent='The engine is reading the live queue and drafting the report';
+  const top=ranked().filter(r=>lvlFor(r)[0]!=='Routine'&&r.score>=50).slice(0,6)
+    .map(r=>`${r.school} (education department ${r.gov}, sector ${r.sector}): ${r.text} — Score ${r.score}/100, Remaining from Repair window ${fmtLeft(r.due-now())}`).join('\n');
+  const sys='You draft official reports inside the Sawn platform. Write a short report (4 to 5 sentences, one paragraph, no headings or lists) from an education department to the Ministry of Education, in measured administrative English, stating how many critical cases are open, the most serious of them, and exactly what the ministry is being asked to approve.';
+  const usr=`the department: Al Baha regional education department (991 schools, 85 thousand pupils, the Sarat and Tihamah sectors).\nReport scope: ${$('repScope').value}\nDirector’s note: ${$('repNote').value||'None'}\ncases:\n${top}`;
+  let body,ms=0,fb=false;
+  try{const x=await llm(sys,usr,700);body=x.txt.trim();ms=x.ms;}
+  catch(e){fb=true;const cc=openReqs().filter(r=>lvlFor(r)[0]==='Critical').length,hc=openReqs().filter(r=>lvlFor(r)[0]==='High').length,t=ranked()[0];
+    body=`The Al Baha regional education department reports to the ministry that the triage queue currently holds ${cc} critical ${cc===1?'case':'cases'} and ${hc} high severity ${hc===1?'case':'cases'}. The most serious is ${t.school}, ${t.gov} education department, with a score of ${t.score} out of 100. Risk is concentrated in the Sarat sector on leaks and cracking after the rains, and in the Tihamah sector on cooling and electrical load. The department requests urgent funding for the critical cases within their 24 hour repair window.`;}
+  draftReport=body;
+  $('repTxt').textContent=body;$('repMini').textContent='built-in engine';
+  $('repBox').classList.remove('load');$('repBtn').disabled=false;$('repSend').style.display='block';
+  log('REPORT_DRAFTED','engine.local','region.al-baha');
+}
+function sendReport(){
+  if(!draftReport)return;
+  const rep={id:'RPT-'+(100+reports.length),office:'Al Baha regional education department',body:draftReport,at:now(),ai:null};
+  reports.unshift(rep);
+  log('REPORT_SUBMITTED','region.al-baha',rep.id);
+  $('sentList').innerHTML=reports.filter(r=>r.office.includes('Al Baha')).map(r=>
+    `<div class="rep"><div class="t"><b>${r.id} — ${fmtClock(r.at)}</b><span class="chip c-info">delivered to the ministry</span></div>
+     <div class="body">${r.body.slice(0,150)}…</div></div>`).join('');
+  $('repSend').style.display='none';draftReport=null;
+  toast('The report reached the ministry and will be ranked automatically among the departments’ reports');
+  rankReports();
+}
+
+/* ========== MINISTRY INBOX (AI RANKING) ========== */
+const OTHER=[
+ ['Jazan regional education department','The department reports that seven schools in the highland sector have repeated power interruptions with the rainy season approaching, that two of them have partially suspended classes, and asks for additional emergency crews to be approved.'],
+ ['Riyadh regional education department','The department reports that 82% of the quarter’s scheduled preventive maintenance is complete, with a minor delay in delivering air conditioning units to three schools and no effect on teaching.'],
+ ['Asir regional education department','The department reports ground subsidence near the emergency exits of a school in the Tihamah sector. The wing has been closed as a precaution and classes moved, and an urgent structural assessment team is requested within 24 hours.'],
+ ['Tabuk regional education department','The department requests approval to renew the water networks at four schools under the annual plan. The work is not urgent and can be scheduled during the holidays.']];
+function seedReports(){
+  OTHER.forEach((o,i)=>reports.push({id:'RPT-'+(90+i),office:o[0],body:o[1],at:now()-(i+1)*900000,ai:null}));
+}
+seedReports();
+function localRank(r){
+  const t=r.body,u=/closure|closed|emergency|urgent|24|collapse|subsidence|outage|suspended/.test(t)?(/subsidence|collapse|closed|suspended/.test(t)?92:78):(/delayed|routine|preventive|scheduling/.test(t)?28:55);
+  return {urgency:u,headline:t.slice(0,95)+'…',action:u>=75?'Send an assessment team and approve emergency funding within 24 hours':u>=50?'Schedule within a week with weekly follow-up':'Add to the routine plan with no urgent action'};
+}
+async function rankReports(){
+  const box=$('inbox');if(!box)return;
+  $('rankBtn').disabled=true;
+  box.innerHTML=`<div class="aibox load"><div class="h"><span class="sp"></span><span>The engine is reading ${reports.length} reports from departments and ranks them by urgency…</span></div><p>Each report is read, an urgency score and an executive recommendation are extracted, then the order is recomputed.</p></div>`;
+  const list=reports.map((r,i)=>`[${i}] ${r.office}: ${r.body}`).join('\n\n');
+  const sys=`You are the report triage engine in the Ministry of Education Saudi Arabia. You read reports arriving from education departments and rank them by executive urgency (safety risk, disruption to teaching, people affected), not by arrival time.
+Return JSON only, with no Markdown: [{"i":0,"urgency":0,"headline":"One line","action":"One-sentence executive recommendation"}] ordered by urgency, highest first. Urgency runs from 0 to 100.`;
+  let out,fb=false,ms=0;
+  try{const x=await llm(sys,list,1000);out=parseJSON(x.txt);ms=x.ms;}
+  catch(e){fb=true;out=reports.map((r,i)=>({i,...localRank(r)})).sort((a,b)=>b.urgency-a.urgency);}
+  const ord=[];
+  out.forEach(o=>{const r=reports[o.i];if(r){r.ai={urgency:+o.urgency||0,headline:o.headline,action:o.action};ord.push(r);}});
+  reports.forEach(r=>{if(!ord.includes(r)){r.ai=r.ai||localRank(r);ord.push(r);}});
+  reports=ord.sort((a,b)=>(b.ai?.urgency||0)-(a.ai?.urgency||0));
+  $('rankBtn').disabled=false;
+  log('REPORTS_RANKED','engine.local',`${reports.length} reports · built-in engine`);
+  renderInbox(fb?null:ms);renderMinistry();
+}
+function renderInbox(ms){
+  const box=$('inbox');if(!box)return;
+  box.innerHTML=reports.map((r,i)=>{
+    const u=r.ai?.urgency||0,c=u>=75?'c-crit':u>=50?'c-high':'c-low';
+    return `<div class="rep"><div class="t">
+      <div><b>${i+1}. ${r.office}</b><div style="font-size:11px;color:var(--mute)" class="mono">#${r.id} · ${fmtClock(r.at)}</div></div>
+      <div style="text-align:center"><div class="urg" style="color:${u>=75?'#C0392B':u>=50?'#D08A2A':'#5D7479'}">${u}</div>
+      <span class="chip ${c}">${u>=75?'high urgency':u>=50?'follow-up':'periodic'}</span></div></div>
+      <div class="body">${r.body}</div>
+      ${r.ai?`<div class="ai"><b>Engine reading</b>${r.ai.headline||''}<br><b style="margin-top:6px">Recommendation</b>${r.ai.action||''}</div>`:''}</div>`;}).join('');
+  const hi=reports.filter(r=>(r.ai?.urgency||0)>=75).length;
+  $('iKpi').innerHTML=`<div class="kpi"><b>${reports.length}</b><span>reports in the inbox</span></div>
+   <div class="kpi crit"><b>${hi}</b><span>high urgency reports</span><i>needs a decision within 24 hours</i></div>
+   <div class="kpi ai"><b>${ms?ms+' ms':'—'}</b><span>time to read and rank the inbox</span><i>against days of human reading</i></div>
+   <div class="kpi ok"><b>${aiCalls}</b><span>inference recorded in the log</span></div>`;
+}
+
+/* ========== ASSISTANT ========== */
+function quick(q){$('askIn').value=q;ask();}
+async function ask(){
+  const q=$('askIn').value.trim();if(!q)return;
+  $('askIn').value='';$('askBtn').disabled=true;
+  const c=$('chat');
+  c.innerHTML+=`<div class="msg u"><span class="b">${q}</span></div>`;
+  const id='m'+now();
+  c.innerHTML+=`<div class="msg a" id="${id}"><span class="b">…</span></div>`;c.scrollTop=c.scrollHeight;
+  const data={
+    region:'Al Baha: 991 schools, 85,000 pupils, the rainy Sarat sector and the hot Tihamah sector',
+    departments_education:OFFICES.map(o=>({department:o[0],sector:o[1]})),
+    Requests:reqs.map(r=>({school:r.school,department:r.gov,sector:r.sector,school_rating:r.fb?r.fb.v:'—',rating_reason:r.fb?r.fb.why:'—',company:r.exec?r.exec.co:'—',supervising_engineer:r.exec?r.exec.eng:'—',handover_notes:r.exec&&r.exec.notes?r.exec.notes:'—',company_head:r.exec?r.exec.head:'—',signature_fingerprint:r.exec&&r.exec.sig?r.exec.sig.eng.sig:'—',fault:r.text,score:r.score,
+      Level:r.level,status:r.status,time_left:fmtLeft(r.due-now())})),
+    reports_departments:reports.map(r=>({department:r.office,urgency:r.ai?.urgency||null}))};
+  const sys='You are an analytical assistant inside the Sawn platform for the Ministry of Education. Answer briefly in English (3 to 5 sentences) using only the data given, citing specific numbers and names from it. Do not invent data, and say so plainly if the data is not enough.';
+  try{const x=await llm(sys,`live data:\n${JSON.stringify(data)}\n\nquestion: ${q}`,800);
+    $(id).innerHTML=`<span class="b">${x.txt.trim()}</span>`;log('ASSISTANT_QUERY','engine.lm',`${x.ms}ms`);}
+  catch(e){
+    const crit=openReqs().filter(r=>lvlFor(r)[0]==='Critical'),late=openReqs().filter(r=>r.due-now()<=0);
+    $(id).innerHTML=`<span class="b">${crit.length} critical ${crit.length===1?'case':'cases'} and ${late.length} ${late.length===1?'request':'requests'} past the repair window. Highest ranked: ${ranked()[0].school}, ${ranked()[0].gov} education department, score ${ranked()[0].score}/100.</span>`;}
+  $('askBtn').disabled=false;c.scrollTop=c.scrollHeight;
+}
+$('askIn').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});
+
+/* ========== LOGIN FLOW ========== */
+document.querySelectorAll('.role').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.role').forEach(x=>x.classList.remove('on'));b.classList.add('on');role=b.dataset.r;
+  const u={school:'a.alghamdi@moe.gov.sa',admin:'maint.albaha@moe.gov.sa',ministry:'buildings.hq@moe.gov.sa'};
+  $('moeUser').value=u[role];}));
+let authMode='moe';
+document.querySelectorAll('#authseg button').forEach(b=>b.addEventListener('click',()=>{
+  authMode=b.dataset.a;
+  document.querySelectorAll('#authseg button').forEach(x=>x.classList.toggle('on',x===b));
+  $('moeFields').style.display=authMode==='moe'?'block':'none';
+  $('nafFields').style.display=authMode==='moe'?'none':'block';}));
+
+function toStep2(){
+  $('lstep1').style.display='none';$('lstep2').style.display='block';$('nafok').style.display='none';
+  if(authMode==='moe'){
+    $('v2title').textContent='Two-factor check — single sign-on';
+    $('v2sub').innerHTML='Enter the one-time code from the ministry verification app. Your authority is read from the ministry HR record once verified.';
+    $('otpWrap').style.display='block';$('nafnums').innerHTML='';
+  }else{
+    $('v2title').textContent='National ID verification';
+    $('v2sub').innerHTML='Choose the number shown in the verification app. The correct one is <b>47</b>';
+    $('otpWrap').style.display='none';
+    const n=[12,47,83].sort(()=>Math.random()-.5);
+    $('nafnums').innerHTML=n.map(x=>`<button class="nafnum" data-v="${x}">${x}</button>`).join('');
+    document.querySelectorAll('#nafnums .nafnum').forEach(b=>b.addEventListener('click',()=>{
+      if(+b.dataset.v===47){b.classList.add('ok');
+        document.querySelectorAll('#nafnums .nafnum').forEach(o=>{if(o!==b)o.classList.add('no')});
+        authOk('nafath.id-verify');}
+      else toast('Wrong number, try again');}));
+  }
+}
+function verifyOtp(){
+  if($('otp').value.trim().length<6){toast('The code is six digits');return;}
+  $('otpWrap').style.display='none';authOk('moe.sso');
+}
+function authOk(src){
+  $('nafok').style.display='block';
+  $('nafwho').textContent=ROLE[role].n+' · '+ROLE[role].r;
+  window._authSrc=src;
+}
+function backLogin(){$('lstep2').style.display='none';$('lstep1').style.display='block';$('nafok').style.display='none';}
+function enterApp(){
+  $('login').classList.remove('on');$('login').style.display='none';$('app').classList.add('on');
+  $('whoN').textContent=ROLE[role].n;$('whoR').textContent=ROLE[role].r;
+  $('tabs').innerHTML=ROLE[role].tabs.map((t,i)=>`<button data-v="${t[0]}" class="${i?'':'on'}">${t[1]}</button>`).join('');
+  document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>switchTo(b.dataset.v)));
+  log('AUTH_SUCCESS',window._authSrc||'moe.sso',window._authSrc==='nafath.id-verify'?'national id verified':$('moeUser').value);
+  log('ROLE_RESOLVED','hr.faris',`role=${role} · scope=${role==='school'?'school.balhakam':role==='admin'?'region.al-baha':'national'}`);
+  ['MODEL_LOADED|engine.v2.1|risk-matrix v2.1 · 8 indicators',
+   'FAIRNESS_CHECK|governance.job|small-school delta 0.03 — within tolerance']
+   .forEach(s=>{const p=s.split('|');log(p[0],p[1],p[2])});
+  renderAll();switchTo(ROLE[role].tabs[0][0]);
+  if(role==='ministry')rankReports();
+}
+/* Every move the user makes is pushed here, so Back retraces their steps
+   rather than guessing at a hierarchy. No forward arrow: it would sit
+   disabled almost always, which reads as broken. */
+let NAV=[];
+function snapshot(){
+  const view=(document.querySelector('.view.on')||{}).id||null;
+  return {view, role, map:JSON.stringify(mapAt),
+          modal:$('modal').classList.contains('on')?($('mbox').dataset.req||'1'):null,
+          filter:FILT[role], qView:qView};
+}
+function pushNav(){
+  const s=snapshot();
+  const last=NAV[NAV.length-1];
+  if(!last||JSON.stringify(last)!==JSON.stringify(s))NAV.push(s);
+  if(NAV.length>60)NAV.shift();
+  renderBack();
+}
+function goBack(){
+  if($('modal').classList.contains('on')){closeModal();renderBack();return;}
+  NAV.pop();                       // the state we are in now
+  const prev=NAV[NAV.length-1];
+  if(!prev){renderBack();return;}
+  if(prev.role!==role)return;      // never step across a sign-in boundary
+  FILT[role]=prev.filter; if(role==='school')mineFilter=prev.filter;
+  qView=prev.qView||'table';
+  const pm=JSON.parse(prev.map);
+  if(JSON.stringify(pm)!==JSON.stringify(mapAt)){mapAt=pm;}
+  renderAll();
+  if(prev.view)applyView(prev.view);
+  renderBack();
+}
+function canGoBack(){
+  if($('modal').classList.contains('on'))return true;
+  return NAV.length>1 && NAV[NAV.length-2].role===role;
+}
+function renderBack(){
+  const b=$('backBtn'); if(!b)return;
+  b.disabled=!canGoBack();
+  b.setAttribute('aria-disabled',String(!canGoBack()));
+}
+/* which Y.3172 node each screen belongs to */
+const PIPE_MAP={'v-new':['SRC','C','PP','M'],'v-mine':['SINK'],'v-ask':['M','D'],'v-queue':['M','P'],'v-policy':['M'],'v-report':['D'],
+  'v-gov':['MLFO'],'v-audit':['P','D'],'v-map':['D'],'v-inbox':['M','D']};
+function lightPipe(v){const on=PIPE_MAP[v]||[];document.querySelectorAll('#pipe span[data-n]').forEach(x=>x.classList.toggle('on',on.includes(x.dataset.n)));}
+function applyView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  lightPipe(v);
+  renderHeadStats();
+  try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){}
+}
+function switchTo(v){
+  applyView(v);
+  pushNav();
+}
+function logout(){location.reload();}
+
+/* ========== LIVE LOOP ========== */
+setInterval(()=>{
+  const d=new Date();
+  $('clk').textContent=fmtClock(d)+' · '+fmtDay(d);
+  const up=Math.floor((now()-started)/1000);
+  $('upt').textContent=String(Math.floor(up/60)).padStart(2,'0')+':'+String(up%60).padStart(2,'0');
+  document.querySelectorAll('[data-due]').forEach(e=>{
+    const left=+e.dataset.due-now();e.textContent=fmtLeft(left);
+    e.classList.remove('warn','late','okk');
+    e.classList.add(left<=0?'late':left<6*H?'warn':'okk');});
+},1000);
+
+/* incoming requests, live */
+setInterval(()=>{
+  if(!$('app').classList.contains('on'))return;
+  if(reqs.length>26)return;
+  const si=Math.floor(Math.random()*SCHOOLS.length),fi=Math.floor(Math.random()*FAULTS.length);
+  const r=mkReq(si,fi,Math.floor(Math.random()*6));r.fresh=true;
+  reqs.push(r);
+  log('REQUEST_RECEIVED','school.'+r.gov,`${r.id} · ${r.school}`);
+  log('SCORE_COMPUTED','engine.v2.1',`${r.id} score=${r.score}`);
+  renderAll();
+  setTimeout(()=>{r.fresh=false},3000);
+  if(lvlFor(r)[0]==='Critical')toast(`critical case incoming: ${r.school} — ${r.score}/100 · 24 hour repair window`);
+},22000);
+
+renderAuditKpi();renderAudit();
+setInterval(()=>{if($('v-audit').classList.contains('on'))renderAudit();},20000);
+</script>
+</body>
+</html>

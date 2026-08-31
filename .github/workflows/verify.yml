@@ -1,0 +1,29 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      # Asserts the index inside the simulator is identical to rag/index.json,
+      # that kb/sources.json is the corpus it was fitted over, that every id the
+      # evaluation expects exists in that corpus, and that the metrics in the
+      # README reproduce. Exits non-zero on any regression.
+      - name: Verify index integrity and reproduce the documented metrics
+        run: python3 tools/verify_index.py
+
+      - name: Answer a covered question
+        run: python3 cli.py ask "who must inspect a blocked fire exit in a school?"
+
+      - name: Refuse an uncovered question
+        run: python3 cli.py ask "what is the maximum time allowed to repair a critical fault?"
