@@ -203,7 +203,7 @@
       "code": "ECC-2:2024",
       "title": "Essential Cybersecurity Controls",
       "authority": "National Cybersecurity Authority",
-      "url": "https://nca.gov.sa",
+      "url": "https://nca.gov.sa/en/regulatory-documents/controls-list/ecc/",
       "text": "ECC-2:2024 — Essential Cybersecurity Controls. The national cybersecurity baseline for government entities and critical infrastructure, covering governance, defence, resilience and third party and cloud security. Access control, logging and supplier obligations sit here.",
       "tags": [
         "access control",
@@ -309,7 +309,7 @@
       "code": "ISO 31000",
       "title": "Risk management guidelines",
       "authority": "ISO",
-      "url": "https://iso.org",
+      "url": "https://www.iso.org/standard/65694.html",
       "text": "ISO 31000 — Risk management guidelines. Guidelines for managing risk, including establishing criteria, evaluating risk by likelihood and consequence, and deciding treatment and escalation.",
       "tags": [
         "risk",
@@ -326,7 +326,7 @@
       "code": "ISO/IEC 27001",
       "title": "Information security management",
       "authority": "ISO/IEC",
-      "url": "https://iso.org",
+      "url": "https://www.iso.org/standard/27001",
       "text": "ISO/IEC 27001 — Information security management. Requirements for an information security management system, including controls for logging, access and supplier relationships.",
       "tags": [
         "information security",
@@ -341,7 +341,7 @@
       "code": "ISO/IEC 42001",
       "title": "AI management system",
       "authority": "ISO/IEC",
-      "url": "https://iso.org",
+      "url": "https://www.iso.org/standard/81230.html",
       "text": "ISO/IEC 42001 — AI management system. Requirements for managing artificial intelligence systems across their lifecycle, including impact assessment, documentation and controlled change.",
       "tags": [
         "ai management",
@@ -357,7 +357,7 @@
       "code": "ISO/IEC 23894",
       "title": "AI risk management guidance",
       "authority": "ISO/IEC",
-      "url": "https://iso.org",
+      "url": "https://www.iso.org/standard/77304.html",
       "text": "ISO/IEC 23894 — AI risk management guidance. Guidance on applying risk management to artificial intelligence, covering model failure, monitoring and unwanted outcomes.",
       "tags": [
         "ai risk",
