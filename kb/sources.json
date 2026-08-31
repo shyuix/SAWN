@@ -7,7 +7,7 @@
       "code": "SBC 201",
       "title": "General Building Code (structural provisions)",
       "authority": "Saudi Building Code National Committee",
-      "url": "https://sbc.gov.sa",
+      "url": "https://sbc.gov.sa/ar/BC/Pages/BuildingCode/BC.aspx?year=2024",
       "text": "SBC 201 — General Building Code (structural provisions). Sets the structural design and safety requirements for buildings in the Kingdom, including load bearing elements. Damage to a load bearing element is a structural condition and is assessed against this code rather than treated as a cosmetic defect.",
       "tags": [
         "cracking",
@@ -36,7 +36,7 @@
       "code": "SBC 401",
       "title": "Electrical requirements",
       "authority": "Saudi Building Code National Committee",
-      "url": "https://sbc.gov.sa",
+      "url": "https://sbc.gov.sa/ar/BC/Pages/BuildingCode/BC.aspx?year=2024",
       "text": "SBC 401 — Electrical requirements. Covers electrical installations, protection and safe enclosure of distribution equipment. An exposed or unsecured panel in an occupied area is a defect under this code.",
       "tags": [
         "distribution board",
@@ -58,7 +58,7 @@
       "code": "SBC 801",
       "title": "Fire protection requirements",
       "authority": "Saudi Building Code National Committee",
-      "url": "https://sbc.gov.sa",
+      "url": "https://sbc.gov.sa/ar/BC/Pages/BuildingCode/BC.aspx?year=2024",
       "text": "SBC 801 — Fire protection requirements. Governs means of egress, fire separation and protection systems. Exits must stay usable at all times, so a blocked or locked exit is a life safety failure and not a scheduling matter.",
       "tags": [
         "alarm",
@@ -80,7 +80,7 @@
       "code": "Civil Defence",
       "title": "Fire safety requirements for occupied premises",
       "authority": "General Directorate of Civil Defence",
-      "url": "https://998.gov.sa",
+      "url": "https://998.gov.sa/Ar/Page/civil_defense_lists_data/web/CivilDefenseLists/",
       "text": "Civil Defence — Fire safety requirements for occupied premises. Sets safety requirements and inspection powers for occupied premises including schools, covering evacuation routes, extinguishers and alarm systems.",
       "tags": [
         "extinguishers",
@@ -152,7 +152,7 @@
       "code": "PDPL",
       "title": "Personal Data Protection Law",
       "authority": "SDAIA",
-      "url": "https://sdaia.gov.sa",
+      "url": "https://sdaia.gov.sa/ar/Research/Pages/DataProtection.aspx",
       "text": "PDPL — Personal Data Protection Law. Governs the processing of personal data in the Kingdom, including lawful basis, purpose limitation and data minimisation. Photographs taken inside a school may capture students, which brings maintenance imagery into scope.",
       "tags": [
         "personal data",
@@ -170,7 +170,7 @@
       "code": "NDMO",
       "title": "National data governance and classification",
       "authority": "SDAIA / National Data Management Office",
-      "url": "https://sdaia.gov.sa",
+      "url": "https://sdaia.gov.sa/ar/Sectors/NDMO/Pages/default.aspx",
       "text": "NDMO — National data governance and classification. Sets national rules for data governance, classification and sharing between entities. Classification decides how a dataset may be shared, stored and exposed to third parties.",
       "tags": [
         "classification",
